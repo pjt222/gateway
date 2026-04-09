@@ -1,0 +1,13 @@
+{
+  "name": "Gateway Session",
+  "short_name": "Gateway",
+  "description": "Binaural beat meditation engine inspired by the Monroe Institute's Gateway Experience",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000004",
+  "theme_color": "#000004",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

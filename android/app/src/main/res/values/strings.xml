@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gateway Session</string>
+    <string name="title_activity_main">Gateway Session</string>
+    <string name="package_name">com.pjt222.gateway</string>
+    <string name="custom_url_scheme">com.pjt222.gateway</string>
+</resources>
