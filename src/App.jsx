@@ -19,41 +19,44 @@ const PHASE_TEMPLATES = {
   ],
 };
 
+// Brainwave band ranges for beat frequency (Hz)
+const BAND_RANGE = { delta: [0.3, 4], theta: [4, 8], alpha: [8, 13], beta: [13, 30], gamma: [30, 100] };
+
 const PRESETS = {
   "Focus 10": {
     description: "Mind Awake, Body Asleep",
     layers: [
-      { label: "Delta Ground", f_base: 100, f_diff_start: 3.0, f_diff_end: 1.5, amp: 0.45, mode: "binaural" },
-      { label: "Alpha→Theta", f_base: 200, f_diff_start: 12.0, f_diff_end: 5.0, amp: 0.3, mode: "binaural" },
-      { label: "Gamma Clarity", f_base: 400, f_diff_start: 40.0, f_diff_end: 40.0, amp: 0.08, mode: "binaural" },
+      { label: "Delta Ground", f_base: 100, f_diff_start: 3.0, f_diff_end: 1.5, amp: 0.45, mode: "binaural", band: "delta" },
+      { label: "Alpha→Theta", f_base: 200, f_diff_start: 12.0, f_diff_end: 5.0, amp: 0.3, mode: "binaural", band: "alpha" },
+      { label: "Gamma Clarity", f_base: 400, f_diff_start: 40.0, f_diff_end: 40.0, amp: 0.08, mode: "binaural", band: "gamma" },
     ],
     noise: 0.15, phases: "Classic Gateway",
   },
   "Focus 12": {
     description: "Expanded Awareness",
     layers: [
-      { label: "Delta Anchor", f_base: 100, f_diff_start: 2.5, f_diff_end: 1.0, amp: 0.4, mode: "binaural" },
-      { label: "Theta Drift", f_base: 200, f_diff_start: 7.0, f_diff_end: 4.5, amp: 0.35, mode: "binaural" },
-      { label: "Beta Spark", f_base: 300, f_diff_start: 18.0, f_diff_end: 18.0, amp: 0.12, mode: "isochronal" },
+      { label: "Delta Anchor", f_base: 100, f_diff_start: 2.5, f_diff_end: 1.0, amp: 0.4, mode: "binaural", band: "delta" },
+      { label: "Theta Drift", f_base: 200, f_diff_start: 7.0, f_diff_end: 4.5, amp: 0.35, mode: "binaural", band: "theta" },
+      { label: "Beta Spark", f_base: 300, f_diff_start: 18.0, f_diff_end: 18.0, amp: 0.12, mode: "isochronal", band: "beta" },
     ],
     noise: 0.18, phases: "Classic Gateway",
   },
   "Focus 15": {
     description: "No Time — Deep Exploration",
     layers: [
-      { label: "Sub-Delta", f_base: 80, f_diff_start: 1.5, f_diff_end: 0.5, amp: 0.5, mode: "binaural" },
-      { label: "Deep Theta", f_base: 150, f_diff_start: 6.0, f_diff_end: 3.5, amp: 0.35, mode: "binaural" },
-      { label: "Gamma Web", f_base: 420, f_diff_start: 42.0, f_diff_end: 42.0, amp: 0.06, mode: "isochronal" },
+      { label: "Sub-Delta", f_base: 80, f_diff_start: 1.5, f_diff_end: 0.5, amp: 0.5, mode: "binaural", band: "delta" },
+      { label: "Deep Theta", f_base: 150, f_diff_start: 6.0, f_diff_end: 3.5, amp: 0.35, mode: "binaural", band: "theta" },
+      { label: "Gamma Web", f_base: 420, f_diff_start: 42.0, f_diff_end: 42.0, amp: 0.06, mode: "isochronal", band: "gamma" },
     ],
     noise: 0.22, phases: "Deep Dive",
   },
   "Focus 21": {
     description: "Bridge State — Other Systems",
     layers: [
-      { label: "Infra-Delta", f_base: 70, f_diff_start: 1.0, f_diff_end: 0.3, amp: 0.5, mode: "binaural" },
-      { label: "Theta Cascade", f_base: 130, f_diff_start: 5.0, f_diff_end: 3.0, amp: 0.3, mode: "binaural" },
-      { label: "High Gamma", f_base: 500, f_diff_start: 48.0, f_diff_end: 48.0, amp: 0.05, mode: "isochronal" },
-      { label: "Beta Bridge", f_base: 250, f_diff_start: 14.0, f_diff_end: 14.0, amp: 0.1, mode: "binaural" },
+      { label: "Infra-Delta", f_base: 70, f_diff_start: 1.0, f_diff_end: 0.3, amp: 0.5, mode: "binaural", band: "delta" },
+      { label: "Theta Cascade", f_base: 130, f_diff_start: 5.0, f_diff_end: 3.0, amp: 0.3, mode: "binaural", band: "theta" },
+      { label: "High Gamma", f_base: 500, f_diff_start: 48.0, f_diff_end: 48.0, amp: 0.05, mode: "isochronal", band: "gamma" },
+      { label: "Beta Bridge", f_base: 250, f_diff_start: 14.0, f_diff_end: 14.0, amp: 0.1, mode: "binaural", band: "beta" },
     ],
     noise: 0.25, phases: "Deep Dive",
   },
@@ -291,6 +294,12 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
   const bc = getBandColor(dd), bn = getBandName(dd);
   const hasRamp = Math.abs(layer.f_diff_start - layer.f_diff_end) > 0.1;
   const iso = layer.mode === "isochronal";
+  // Band-capped ranges: preset layers have layer.band, custom layers don't
+  const range = layer.band ? BAND_RANGE[layer.band] : null;
+  const dfMin = range ? range[0] : 0.3;
+  const dfMax = range ? range[1] : 60;
+  const actualMin = layer.f_base + dfMin;
+  const actualMax = range ? layer.f_base + dfMax : 660;
   return (
     <div style={{ background:"rgba(11,9,36,0.7)",border:`1px solid ${bc}22`,borderRadius:10,padding:"12px 14px",
       display:"flex",flexDirection:"column",gap:8 }}>
@@ -311,7 +320,7 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
             borderColor:iso?"rgba(211,67,110,0.3)":"rgba(68,1,84,0.2)",
             color:iso?"#F8765C":"#7AD5D6" }}>{iso?"ISO":"BIN"}</button>
           <span style={{ fontSize:10,color:bc,background:`${bc}15`,padding:"2px 8px",borderRadius:6,
-            fontFamily:"'JetBrains Mono',monospace" }}>{bn} · {dd.toFixed(1)} Hz</span>
+            fontFamily:"'JetBrains Mono',monospace" }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
           <button onClick={onRemove} aria-label={`Remove ${layer.label}`} style={{ background:"transparent",border:"none",
             color:"rgba(200,180,220,0.5)",cursor:"pointer",fontSize:18,padding:"8px 10px",lineHeight:1,minWidth:44,minHeight:44,
             display:"flex",alignItems:"center",justifyContent:"center" }}>&times;</button>
@@ -324,11 +333,11 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
             onChange={(e)=>onChange({...layer,f_base:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_base} Hz</span></div>
         <div><label style={sLabel}>Actual (R)</label>
-          <input type="range" min={0} max={660} step={1} value={layer.f_base + dd}
+          <input type="range" min={actualMin} max={actualMax} step={0.1} value={layer.f_base + dd}
             aria-label={`${layer.label} actual right-ear frequency`}
             onChange={(e)=>{
               const actual = +e.target.value;
-              const newDiff = Math.max(0.3, actual - layer.f_base);
+              const newDiff = Math.max(dfMin, Math.min(dfMax, actual - layer.f_base));
               onChange({...layer, f_diff_start: newDiff, f_diff_end: hasRamp ? layer.f_diff_end : newDiff});
             }} style={sSlider}/>
           <span style={sVal}>{(layer.f_base + dd).toFixed(1)} Hz</span></div>
@@ -340,7 +349,7 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
             onChange={(e)=>onChange({...layer,amp:+e.target.value/100})} style={sSlider}/>
           <span style={sVal}>{Math.round(layer.amp*100)}%</span></div>
         <div><label style={sLabel}>Beat Δf {hasRamp ? "Start" : ""}</label>
-          <input type="range" min={0.3} max={60} step={0.1} value={layer.f_diff_start}
+          <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_start}
             aria-label={`${layer.label} beat frequency start`}
             onChange={(e)=>onChange({...layer,f_diff_start:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_diff_start.toFixed(1)} Hz</span></div>
@@ -348,7 +357,7 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
       {hasRamp && <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
         <div/>
         <div><label style={sLabel}>Beat Δf End <span style={{color:"#21908C"}}>↘</span></label>
-          <input type="range" min={0.3} max={60} step={0.1} value={layer.f_diff_end}
+          <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_end}
             aria-label={`${layer.label} beat frequency end`}
             onChange={(e)=>onChange({...layer,f_diff_end:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_diff_end.toFixed(1)} Hz</span></div>
