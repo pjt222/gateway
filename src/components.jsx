@@ -21,10 +21,11 @@ export function PhaseBar({ phases, elapsed, totalDuration }) {
               borderRight: i < phases.length-1 ? "1px solid rgba(0,0,4,0.8)" : "none", overflow: "hidden" }}>
               <div style={{ position: "absolute", inset: 0, background: colors[i%colors.length],
                 width: `${localP*100}%`, transition: "width 0.5s linear" }} />
-              <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center",
-                justifyContent: "center", height: "100%", fontSize: 9, letterSpacing: "0.06em",
+              <span style={{ position: "relative", zIndex: 1, display: "block", textAlign: "center",
+                lineHeight: "28px", fontSize: 9, letterSpacing: "0.06em",
                 fontFamily: "'JetBrains Mono',monospace", textTransform: "uppercase",
-                color: active ? "#e2e0f0" : "rgba(53,176,171,0.7)", fontWeight: active ? 600 : 400 }}>
+                color: active ? "#e2e0f0" : "rgba(53,176,171,0.7)", fontWeight: active ? 600 : 400,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", padding: "0 2px" }}>
                 {p.name}
               </span>
             </div>
