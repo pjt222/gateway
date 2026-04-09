@@ -59,7 +59,7 @@ export default function GatewaySession() {
 
         {/* ── Top row: Canvas + Timer/Controls side-by-side on desktop ── */}
         <div style={desktop?{display:"flex",gap:24,alignItems:"flex-start"}:undefined}>
-          <div style={desktop?{flex:"0 0 auto"}:undefined}>
+          <div style={desktop?{flex:"0 0 auto",maxWidth:300}:undefined}>
             <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
               isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
               zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
@@ -99,7 +99,7 @@ export default function GatewaySession() {
             {/* ── Volume + Presets inline on desktop ── */}
             {desktop ? (
               <div style={{ display:"flex",gap:16,width:"100%",marginTop:4 }}>
-                <div style={{ flex:"0 0 240px",background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
+                <div style={{ flex:"0 1 240px",minWidth:180,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
                   borderRadius:10,padding:"10px 14px" }}>
                   <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                     <div style={{ display:"flex",alignItems:"center",gap:8 }}>

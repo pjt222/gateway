@@ -95,7 +95,8 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
             borderColor:iso?"rgba(211,67,110,0.3)":"rgba(68,1,84,0.2)",
             color:iso?"#F8765C":"#7AD5D6" }}>{iso?"ISO":"BIN"}</button>
           <span style={{ fontSize:compact?9:10,color:bc,background:`${bc}15`,padding:"2px 6px",borderRadius:6,
-            fontFamily:"'JetBrains Mono',monospace",whiteSpace:"nowrap" }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
+            fontFamily:"'JetBrains Mono',monospace",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+            minWidth:0,flexShrink:1 }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
           <button onClick={onRemove} aria-label={`Remove ${layer.label}`} style={{ background:"transparent",border:"none",
             color:"rgba(200,180,220,0.5)",cursor:"pointer",fontSize:compact?16:18,padding:compact?"4px 6px":"8px 10px",
             lineHeight:1,minWidth:compact?32:44,minHeight:compact?32:44,
