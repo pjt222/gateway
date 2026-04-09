@@ -24,7 +24,7 @@ export function PhaseBar({ phases, elapsed, totalDuration }) {
               <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center",
                 justifyContent: "center", height: "100%", fontSize: 9, letterSpacing: "0.06em",
                 fontFamily: "'JetBrains Mono',monospace", textTransform: "uppercase",
-                color: active ? "#e2e0f0" : "rgba(33,144,140,0.6)", fontWeight: active ? 600 : 400 }}>
+                color: active ? "#e2e0f0" : "rgba(53,176,171,0.7)", fontWeight: active ? 600 : 400 }}>
                 {p.name}
               </span>
             </div>
@@ -49,16 +49,16 @@ export function TimerDisplay({ elapsed, duration }) {
       </linearGradient></defs>
       <text x="65" y="62" textAnchor="middle" dominantBaseline="middle" fill="#e2e0f0"
         fontSize="20" fontFamily="'JetBrains Mono','SF Mono',monospace" fontWeight="300">{fmt(elapsed)}</text>
-      <text x="65" y="82" textAnchor="middle" fill="rgba(33,144,140,0.75)"
+      <text x="65" y="82" textAnchor="middle" fill="#35b0ab"
         fontSize="10" fontFamily="'JetBrains Mono',monospace">/ {fmt(duration)}</text>
     </svg>
   );
 }
 
 // ─── Styles ───
-const sLabel = { fontSize:11,color:"rgba(33,144,140,0.8)",textTransform:"uppercase",
+const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
   letterSpacing:"0.08em",display:"block",marginBottom:2,fontFamily:"'JetBrains Mono',monospace" };
-const sVal = { fontSize:12,color:"rgba(200,190,230,0.85)",fontFamily:"'JetBrains Mono',monospace",display:"block",marginTop:1 };
+const sVal = { fontSize:12,color:"#c8bee6",fontFamily:"'JetBrains Mono',monospace",display:"block",marginTop:1 };
 const sSlider = { width:"100%",height:3,appearance:"auto",accentColor:"#3B528B",cursor:"pointer" };
 
 // ─── Layer Row ───
@@ -81,13 +81,13 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
         <div style={{ display:"flex",alignItems:"center",gap:6 }}>
           <div style={{ width:8,height:8,borderRadius:"50%",background:bc,
             boxShadow:isPlaying?`0 0 8px ${bc}`:"none" }}/>
-          <input type="text" value={layer.label} onChange={(e)=>onChange({...layer,label:e.target.value})}
-            style={{ background:"transparent",border:"none",color:"#d4d0ec",fontSize:compact?12:13,
-              fontFamily:"'JetBrains Mono',monospace",fontWeight:500,width:compact?100:140,outline:"none" }}/>
+          <input type="text" value={layer.label} maxLength={40} onChange={(e)=>onChange({...layer,label:e.target.value})}
+            style={{ background:"transparent",border:"none",borderBottom:"1px solid rgba(59,82,139,0.2)",color:"#d4d0ec",fontSize:compact?12:13,
+              fontFamily:"'JetBrains Mono',monospace",fontWeight:500,width:compact?100:140 }}/>
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:compact?4:6 }}>
           <button onClick={()=>onChange({...layer,mode:iso?"binaural":"isochronal"})}
-            aria-pressed={iso} aria-label={`Mode: ${iso?"isochronal":"binaural"}`} style={{
+            role="switch" aria-checked={iso} aria-label="Isochronal mode" style={{
             fontSize:10,padding:compact?"2px 8px":"4px 10px",borderRadius:5,cursor:"pointer",minHeight:compact?28:32,
             fontFamily:"'JetBrains Mono',monospace",border:"1px solid",
             background:iso?"rgba(211,67,110,0.12)":"rgba(68,1,84,0.12)",
@@ -102,12 +102,12 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
         </div>
       </div>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
-        <div><label style={sLabel}>Carrier (L)</label>
+        <div><span style={sLabel}>Carrier (L)</span>
           <input type="range" min={0} max={600} step={1} value={layer.f_base}
             aria-label={`${layer.label} carrier frequency`}
             onChange={(e)=>onChange({...layer,f_base:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_base} Hz</span></div>
-        <div><label style={sLabel}>Actual (R)</label>
+        <div><span style={sLabel}>Actual (R)</span>
           <input type="range" min={actualMin} max={actualMax} step={0.1} value={layer.f_base + dd}
             aria-label={`${layer.label} actual right-ear frequency`}
             onChange={(e)=>{
@@ -118,12 +118,12 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
           <span style={sVal}>{(layer.f_base + dd).toFixed(1)} Hz</span></div>
       </div>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
-        <div><label style={sLabel}>Volume</label>
+        <div><span style={sLabel}>Volume</span>
           <input type="range" min={0} max={100} step={1} value={Math.round(layer.amp*100)}
             aria-label={`${layer.label} volume`}
             onChange={(e)=>onChange({...layer,amp:+e.target.value/100})} style={sSlider}/>
           <span style={sVal}>{Math.round(layer.amp*100)}%</span></div>
-        <div><label style={sLabel}>Beat Δf {hasRamp ? "Start" : ""}</label>
+        <div><span style={sLabel}>Beat Δf {hasRamp ? "Start" : ""}</span>
           <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_start}
             aria-label={`${layer.label} beat frequency start`}
             onChange={(e)=>onChange({...layer,f_diff_start:+e.target.value})} style={sSlider}/>
@@ -131,7 +131,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
       </div>
       {hasRamp && <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
         <div/>
-        <div><label style={sLabel}>Beat Δf End <span style={{color:"#21908C"}}>↘</span></label>
+        <div><span style={sLabel}>Beat Δf End <span style={{color:"#21908C"}}>↘</span></span>
           <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_end}
             aria-label={`${layer.label} beat frequency end`}
             onChange={(e)=>onChange({...layer,f_diff_end:+e.target.value})} style={sSlider}/>

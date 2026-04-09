@@ -23,6 +23,7 @@ export default function FractalBeatCanvas({ analyserRef, noiseAnalyserRef, isPla
   const diffsRef = useRef(currentDiffs);
   const layersRef = useRef(layers);
   const playStartRef = useRef(null);
+  const zenRef = useRef(null);
   useEffect(() => { diffsRef.current = currentDiffs; }, [currentDiffs]);
   useEffect(() => { layersRef.current = layers; }, [layers]);
   useEffect(() => {
@@ -182,9 +183,15 @@ export default function FractalBeatCanvas({ analyserRef, noiseAnalyserRef, isPla
     return () => window.removeEventListener("keydown", handleKey);
   }, [zenMode, onToggleZen]);
 
+  useEffect(() => {
+    if (zenMode && zenRef.current) zenRef.current.focus();
+  }, [zenMode]);
+
   if (zenMode) {
     return (
-      <div style={{ position:"fixed", inset:0, zIndex:9999, background:"#000004" }}
+      <div ref={zenRef} role="dialog" aria-modal="true"
+        aria-label="Zen mode visualizer — press Escape to exit" tabIndex={-1}
+        style={{ position:"fixed", inset:0, zIndex:9999, background:"#000004" }}
         onDoubleClick={onToggleZen}>
         <canvas ref={canvasRef} aria-label="Fractal beat visualizer (zen mode)"
           style={{ width:"100%", height:"100%", display:"block" }} />
@@ -201,8 +208,8 @@ export default function FractalBeatCanvas({ analyserRef, noiseAnalyserRef, isPla
       <canvas ref={canvasRef} width={300} height={300} aria-label="Fractal beat frequency visualizer"
         style={{ width:"100%", maxWidth:300, aspectRatio:"1", borderRadius:12,
           background:"rgba(0,0,4,0.8)", border:"1px solid rgba(59,82,139,0.15)",
-          display:"block", margin:"0 auto", cursor:"pointer" }}
-        onClick={onToggleZen} title="Click for zen mode" />
+          display:"block", margin:"0 auto" }}
+        title="Click for zen mode" />
       <button onClick={onToggleZen} aria-label="Zen mode" title="Zen mode"
         style={{ position:"absolute", top:8, right:8, background:"rgba(0,0,4,0.5)",
           border:"1px solid rgba(59,82,139,0.2)", borderRadius:6, padding:"5px 7px",
