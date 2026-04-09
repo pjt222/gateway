@@ -57,18 +57,97 @@ export default function GatewaySession() {
             Binaural &middot; Isochronal &middot; Phase Scripting &middot; Stereo Headphones Required</p>
         </div>
 
-        {/* ── Top row: Canvas + Timer/Controls side-by-side on desktop ── */}
-        <div style={desktop?{display:"flex",gap:24,alignItems:"flex-start"}:undefined}>
-          <div style={desktop?{flex:"0 0 auto",maxWidth:300}:undefined}>
-            <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-              isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
-              zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
-            <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
+        {/* ── Cockpit: Timer|Canvas|Controls on desktop ── */}
+        {desktop ? (
+          <div style={{display:"flex",gap:20,alignItems:"center"}}>
+            {/* Left — Timer + Volume */}
+            <div style={{flex:"0 0 auto",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+              <TimerDisplay elapsed={elapsed} duration={totalSec}/>
+              <div style={{width:140,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
+                borderRadius:10,padding:"8px 12px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
+                      {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
+                    </svg>
+                    <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"#5DC863",fontWeight:500}}>Vol</span>
+                  </div>
+                  <span style={sVal}>{globalVol}%</span>
+                </div>
+                <input type="range" min={0} max={100} step={1} value={globalVol}
+                  aria-label="Master volume"
+                  onChange={e=>setGlobalVol(+e.target.value)} style={{...sSlider,marginTop:4}}/>
+              </div>
+            </div>
+
+            {/* Center — Canvas */}
+            <div style={{flex:"0 0 auto"}}>
+              <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+                isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+                zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
+            </div>
+
+            {/* Right — Controls + Presets */}
+            <div style={{flex:1,display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
+              <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
+                background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
+                border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
+                color:isPlaying?"#fca5a5":"#5DC863",borderRadius:10,padding:"10px 28px",fontSize:13,
+                fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
+                letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s",alignSelf:"flex-start" }}>
+                {isPlaying?"◼ Stop":"▶ Begin"}</button>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <label htmlFor="dur-sel" style={{...sLabel,marginBottom:0}}>Duration</label>
+                  <select id="dur-sel" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
+                    style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
+                      color:"#5DC863",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
+                      fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
+                    {[5,10,15,20,30,45,60].map(m=><option key={m} value={m}>{m} min</option>)}
+                  </select>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <label htmlFor="phase-sel" style={{...sLabel,marginBottom:0}}>Phases</label>
+                  <select id="phase-sel" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
+                    style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
+                      color:"#5DC863",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
+                      fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
+                    {Object.keys(PHASE_TEMPLATES).map(n=><option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {Object.keys(PRESETS).map(name=>(
+                  <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
+                    aria-pressed={preset===name} style={{
+                    background:preset===name?"rgba(59,82,139,0.2)":"rgba(11,9,36,0.5)",
+                    border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"rgba(59,82,139,0.1)"}`,
+                    color:preset===name?"#5DC863":"rgba(200,190,230,0.9)",borderRadius:8,padding:"6px 12px",
+                    fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:32,
+                    cursor:isPlaying?"not-allowed":"pointer",transition:"all 0.2s",
+                    opacity:isPlaying?0.5:1 }}>{name}</button>
+                ))}
+              </div>
+              {preset && <p style={{fontSize:11,color:"#35b0ab",fontStyle:"italic",margin:0}}>
+                {PRESETS[preset]?.description}</p>}
+            </div>
           </div>
-          <div style={desktop?{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:14,paddingTop:8}
-            :{marginTop:16,display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
+        ) : <>
+          <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+            isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+            zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
+        </>}
+
+        {/* PhaseBar — full width on desktop, below canvas on mobile */}
+        <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
+
+        {/* Mobile: Timer + Controls */}
+        {!desktop && (
+          <div style={{marginTop:16,display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
             <TimerDisplay elapsed={elapsed} duration={totalSec}/>
-            <div style={{ display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",justifyContent:"center" }}>
+            <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",justifyContent:"center"}}>
               <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
                 background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
@@ -76,67 +155,27 @@ export default function GatewaySession() {
                 fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
                 letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s" }}>
                 {isPlaying?"◼ Stop":"▶ Begin"}</button>
-              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                <label htmlFor="dur-sel" style={{...sLabel,marginBottom:0}}>Duration</label>
-                <select id="dur-sel" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
-                  style={{ background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <label htmlFor="dur-sel-m" style={{...sLabel,marginBottom:0}}>Duration</label>
+                <select id="dur-sel-m" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
+                  style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
                     color:"#5DC863",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
-                    fontFamily:"'JetBrains Mono',monospace",cursor:"pointer" }}>
+                    fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
                   {[5,10,15,20,30,45,60].map(m=><option key={m} value={m}>{m} min</option>)}
                 </select>
               </div>
-              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                <label htmlFor="phase-sel" style={{...sLabel,marginBottom:0}}>Phases</label>
-                <select id="phase-sel" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
-                  style={{ background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <label htmlFor="phase-sel-m" style={{...sLabel,marginBottom:0}}>Phases</label>
+                <select id="phase-sel-m" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
+                  style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
                     color:"#5DC863",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
-                    fontFamily:"'JetBrains Mono',monospace",cursor:"pointer" }}>
+                    fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
                   {Object.keys(PHASE_TEMPLATES).map(n=><option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
             </div>
-
-            {/* ── Volume + Presets inline on desktop ── */}
-            {desktop ? (
-              <div style={{ display:"flex",gap:16,width:"100%",marginTop:4 }}>
-                <div style={{ flex:"0 1 240px",minWidth:180,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
-                  borderRadius:10,padding:"10px 14px" }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                        {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
-                        {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
-                      </svg>
-                      <span style={{ fontSize:12,fontFamily:"'JetBrains Mono',monospace",color:"#5DC863",fontWeight:500 }}>
-                        Volume</span>
-                    </div>
-                    <span style={sVal}>{globalVol}%</span>
-                  </div>
-                  <input type="range" min={0} max={100} step={1} value={globalVol}
-                    aria-label="Master volume"
-                    onChange={e=>setGlobalVol(+e.target.value)} style={{...sSlider,marginTop:6}}/>
-                </div>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
-                    {Object.keys(PRESETS).map(name=>(
-                      <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
-                        aria-pressed={preset===name} style={{
-                        background:preset===name?"rgba(59,82,139,0.2)":"rgba(11,9,36,0.5)",
-                        border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"rgba(59,82,139,0.1)"}`,
-                        color:preset===name?"#5DC863":"rgba(200,190,230,0.9)",borderRadius:8,padding:"8px 14px",
-                        fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:36,
-                        cursor:isPlaying?"not-allowed":"pointer",transition:"all 0.2s",
-                        opacity:isPlaying?0.5:1 }}>{name}</button>
-                    ))}
-                  </div>
-                  {preset && <p style={{ fontSize:11,color:"#35b0ab",
-                    marginTop:4,fontStyle:"italic" }}>{PRESETS[preset]?.description}</p>}
-                </div>
-              </div>
-            ) : null}
           </div>
-        </div>
+        )}
 
         {/* ── Volume + Presets stacked on mobile ── */}
         {!desktop && <>
