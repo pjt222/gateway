@@ -297,7 +297,7 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
   // Band-capped ranges: preset layers have layer.band, custom layers don't
   const range = layer.band ? BAND_RANGE[layer.band] : null;
   const dfMin = range ? range[0] : 0.3;
-  const dfMax = range ? range[1] : 60;
+  const dfMax = range ? range[1] : 100;
   const actualMin = layer.f_base + dfMin;
   const actualMax = range ? layer.f_base + dfMax : 660;
   return (
