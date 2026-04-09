@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PRESETS, PHASE_TEMPLATES, BAND_LABELS } from "./constants";
 import { useAudioEngine } from "./useAudioEngine";
 import FractalBeatCanvas from "./FractalBeatCanvas";
+import ThreeVisualizer from "./ThreeVisualizer";
 import { PhaseBar, TimerDisplay, LayerRow } from "./components";
 
 const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
@@ -60,8 +61,8 @@ export default function GatewaySession() {
         {/* ── Cockpit: Timer|Canvas|Controls on desktop ── */}
         {desktop ? (
           <div style={{display:"flex",gap:20,alignItems:"center",justifyContent:"center"}}>
-            {/* Left — Timer + Volume */}
-            <div style={{flex:"1 1 0",maxWidth:300,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+            {/* Left — Timer + Volume (φ-symmetric: 310px max) */}
+            <div style={{flex:"1 1 0",maxWidth:310,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
               <TimerDisplay elapsed={elapsed} duration={totalSec}/>
               <div style={{width:140,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
                 borderRadius:10,padding:"8px 12px"}}>
@@ -82,15 +83,15 @@ export default function GatewaySession() {
               </div>
             </div>
 
-            {/* Center — Canvas */}
+            {/* Center — 3D Visualizer */}
             <div style={{flex:"0 0 auto"}}>
-              <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-                isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
-                zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
+              <ThreeVisualizer layers={layers} currentDiffs={currentDiffs}
+                isPlaying={isPlaying} noiseLevel={noiseLevel} size={360}
+                onToggleZen={()=>setZenMode(z=>!z)} />
             </div>
 
-            {/* Right — Controls + Presets */}
-            <div style={{flex:"1 1 0",maxWidth:300,display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
+            {/* Right — Controls + Presets (φ-symmetric: 310px max) */}
+            <div style={{flex:"1 1 0",maxWidth:310,display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
               <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
                 background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
@@ -134,11 +135,18 @@ export default function GatewaySession() {
                 {PRESETS[preset]?.description}</p>}
             </div>
           </div>
-        ) : <>
+        ) : (
           <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
             isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
             zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
-        </>}
+        )}
+
+        {/* Zen mode overlay — 2D fullscreen canvas (desktop uses Three.js normally, zen uses 2D) */}
+        {desktop && zenMode && (
+          <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+            isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+            zenMode={true} onToggleZen={()=>setZenMode(false)} />
+        )}
 
         {/* PhaseBar — full width on desktop, below canvas on mobile */}
         <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
