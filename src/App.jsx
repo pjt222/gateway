@@ -318,29 +318,41 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
         </div>
       </div>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-        <div><label style={sLabel}>Carrier</label>
-          <input type="range" min={40} max={600} step={1} value={layer.f_base}
+        <div><label style={sLabel}>Carrier (L)</label>
+          <input type="range" min={0} max={600} step={1} value={layer.f_base}
             aria-label={`${layer.label} carrier frequency`}
             onChange={(e)=>onChange({...layer,f_base:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_base} Hz</span></div>
+        <div><label style={sLabel}>Actual (R)</label>
+          <input type="range" min={0} max={660} step={1} value={layer.f_base + dd}
+            aria-label={`${layer.label} actual right-ear frequency`}
+            onChange={(e)=>{
+              const actual = +e.target.value;
+              const newDiff = Math.max(0.3, actual - layer.f_base);
+              onChange({...layer, f_diff_start: newDiff, f_diff_end: hasRamp ? layer.f_diff_end : newDiff});
+            }} style={sSlider}/>
+          <span style={sVal}>{(layer.f_base + dd).toFixed(1)} Hz</span></div>
+      </div>
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
         <div><label style={sLabel}>Volume</label>
           <input type="range" min={0} max={100} step={1} value={Math.round(layer.amp*100)}
             aria-label={`${layer.label} volume`}
             onChange={(e)=>onChange({...layer,amp:+e.target.value/100})} style={sSlider}/>
           <span style={sVal}>{Math.round(layer.amp*100)}%</span></div>
-      </div>
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-        <div><label style={sLabel}>Beat Δf Start</label>
+        <div><label style={sLabel}>Beat Δf {hasRamp ? "Start" : ""}</label>
           <input type="range" min={0.3} max={60} step={0.1} value={layer.f_diff_start}
             aria-label={`${layer.label} beat frequency start`}
             onChange={(e)=>onChange({...layer,f_diff_start:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_diff_start.toFixed(1)} Hz</span></div>
-        <div><label style={sLabel}>Beat Δf End {hasRamp && <span style={{color:"#21908C"}}>↘</span>}</label>
+      </div>
+      {hasRamp && <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+        <div/>
+        <div><label style={sLabel}>Beat Δf End <span style={{color:"#21908C"}}>↘</span></label>
           <input type="range" min={0.3} max={60} step={0.1} value={layer.f_diff_end}
             aria-label={`${layer.label} beat frequency end`}
             onChange={(e)=>onChange({...layer,f_diff_end:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_diff_end.toFixed(1)} Hz</span></div>
-      </div>
+      </div>}
     </div>
   );
 }
