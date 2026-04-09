@@ -20,9 +20,19 @@ npm run cap:ios      # Build + sync + open Xcode
 
 ## Architecture
 
-The app lives in `src/App.jsx` (~540 lines) — a single React component (`GatewaySession`) containing all state, audio logic, and UI sub-components.
+Modular React app split into 6 files under `src/`:
 
-### Audio Graph (Tone.js)
+```
+src/
+├── constants.js          # PRESETS, PHASE_TEMPLATES, BAND_RANGE, BAND_LABELS, FADE_TIME
+├── utils.js              # getBandColor, getBandName, lerp, fmt
+├── FractalBeatCanvas.jsx # Circular fractal beat envelope visualizer (canvas 2D)
+├── components.jsx        # PhaseBar, TimerDisplay, LayerRow
+├── useAudioEngine.js     # Custom hook: Tone.js graph, ramp loop, session control
+└── App.jsx               # Coordinator: state, presets, layout (imports all above)
+```
+
+### Audio Graph (Tone.js) — in `useAudioEngine.js`
 
 ```
 Layer (BIN):  OscL -> GainL -> PanL(-1) ─┐
@@ -38,30 +48,33 @@ Noise:        Pink -> NoiseGain ─────────┤
 - **Binaural mode**: Two hard-panned oscillators at slightly different frequencies; the brain perceives a beat at the difference. Requires headphones.
 - **Isochronal mode**: Single carrier with LFO amplitude modulation. Works with speakers.
 
-### Key Data Structures
+### Key Data Structures — in `constants.js`
 
-- **`PRESETS`** — Monroe Focus Level configurations (10/12/15/21), each defining layers, noise level, and phase script.
+- **`PRESETS`** — Monroe Focus Level configurations (10/12/15/21), each defining layers with `band` constraints, noise level, and phase script.
 - **`PHASE_TEMPLATES`** — Three session arc scripts ("Classic Gateway", "Deep Dive", "Steady State"). Each phase defines `beatMul`, `ampMul`, `noiseAdd` modifiers.
-- **`layers[]`** state — Up to 6 simultaneous entrainment layers, each with carrier frequency, beat diff start/end, amplitude, and BIN/ISO mode.
+- **`BAND_RANGE`** — Brainwave frequency limits per band (delta 0.3–4, theta 4–8, alpha 8–13, beta 13–30, gamma 30–100 Hz). Preset layers are capped to their band; Custom layers use full range.
 
-### Ramp Loop
+### Ramp Loop — in `useAudioEngine.js`
 
 A `requestAnimationFrame` loop (~60fps) interpolates each layer's beat frequency between `f_diff_start` and `f_diff_end` based on session progress, then applies phase modifiers. All frequency changes use Tone.js `rampTo()` for glitch-free transitions. The rAF loop pauses when the app is backgrounded on mobile (Capacitor lifecycle).
 
-### Sub-Components (all inline in App.jsx)
+### Visualizer — `FractalBeatCanvas.jsx`
+
+Circular fractal visualization where each layer is a concentric ring pulsating at the mathematically correct beat envelope `cos(π·Δf·t)`. Three-octave fractal displacement with spatial frequency tied to the carrier/beat ratio. Outer ring shows raw Tone.js waveform in polar coords. DPR-aware canvas with precomputed trig tables.
+
+### UI Components — `components.jsx`
 
 | Component | Purpose |
 |---|---|
-| `WaveCanvas` | Real-time FFT waveform visualization on canvas |
-| `TimerDisplay` | SVG circular progress ring with countdown |
 | `PhaseBar` | Horizontal phase progress with color segments |
-| `LayerRow` | Per-layer parameter editor (carrier, volume, beat diff, mode toggle) |
+| `TimerDisplay` | SVG circular progress ring with countdown |
+| `LayerRow` | Per-layer editor: Carrier (L), Actual (R), volume, beat Δf, mode toggle |
 
 ### Color Scheme
 
 All colors derived from the viridis palette (R `viridis` package). Regenerate with `Rscript scripts/viridis-palette.R`.
 
-- Band colors: viridis(5) — `#440154` (delta) through `#FDE725` (gamma)
+- Band colors: viridis(5) — `#7B2F8C` (delta) through `#FDE725` (gamma), lightened for contrast
 - UI accents: viridis blue `#3B528B`, teal `#21908C`
 - ISO mode: magma accent `#D3436E` / `#F8765C`
 - Backgrounds: inferno-dark `#000004` → `#140E36`
