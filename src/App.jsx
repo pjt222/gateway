@@ -57,48 +57,53 @@ export default function GatewaySession() {
             Binaural &middot; Isochronal &middot; Phase Scripting &middot; Stereo Headphones Required</p>
         </div>
 
-        {/* ── Cockpit: Timer|Canvas|Controls on desktop ── */}
+        {/* ── Nautilus spiral: Canvas at eye, controls in φ-chambers ── */}
         {desktop ? (
-          <div style={{display:"flex",gap:20,alignItems:"center",justifyContent:"center"}}>
-            {/* Left — Timer + Volume (φ-symmetric: 310px max) */}
-            <div style={{flex:"1 1 0",maxWidth:310,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
-              <TimerDisplay elapsed={elapsed} duration={totalSec}/>
-              <div style={{width:140,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
-                borderRadius:10,padding:"8px 12px"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                      {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
-                      {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
-                    </svg>
-                    <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"#5DC863",fontWeight:500}}>Vol</span>
-                  </div>
-                  <span style={sVal}>{globalVol}%</span>
-                </div>
-                <input type="range" min={0} max={100} step={1} value={globalVol}
-                  aria-label="Master volume"
-                  onChange={e=>setGlobalVol(+e.target.value)} style={{...sSlider,marginTop:4}}/>
-              </div>
-            </div>
+          <div style={{display:"grid",gridTemplateColumns:"140px 300px 1fr",gridTemplateRows:"auto auto auto auto",
+            gap:"12px 20px",maxWidth:920,margin:"0 auto"}}>
 
-            {/* Center — Canvas */}
-            <div style={{flex:"0 0 auto"}}>
+            {/* Eye — Canvas (rows 1-3, col 2) */}
+            <div style={{gridColumn:2,gridRow:"1/4",justifySelf:"center"}}>
               <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
                 isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
                 zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
             </div>
 
-            {/* Right — Controls + Presets (φ-symmetric: 310px max) */}
-            <div style={{flex:"1 1 0",maxWidth:310,display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
+            {/* Inner whorl — Volume (col 1, row 1-2, centered on canvas) */}
+            <div style={{gridColumn:1,gridRow:"1/3",alignSelf:"center",
+              background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
+              borderRadius:10,padding:"8px 12px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
+                    {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
+                  </svg>
+                  <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"#5DC863",fontWeight:500}}>Vol</span>
+                </div>
+                <span style={sVal}>{globalVol}%</span>
+              </div>
+              <input type="range" min={0} max={100} step={1} value={globalVol}
+                aria-label="Master volume"
+                onChange={e=>setGlobalVol(+e.target.value)} style={{...sSlider,marginTop:4}}/>
+            </div>
+
+            {/* Timer — below volume (col 1, row 3) */}
+            <div style={{gridColumn:1,gridRow:3,justifySelf:"center"}}>
+              <TimerDisplay elapsed={elapsed} duration={totalSec}/>
+            </div>
+
+            {/* Outer spiral — Begin + selects (col 3, row 1) */}
+            <div style={{gridColumn:3,gridRow:1,display:"flex",flexDirection:"column",gap:8,alignSelf:"center"}}>
               <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
                 background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
                 color:isPlaying?"#fca5a5":"#5DC863",borderRadius:10,padding:"10px 28px",fontSize:13,
                 fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
-                letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s",alignSelf:"flex-start" }}>
+                letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s" }}>
                 {isPlaying?"◼ Stop":"▶ Begin"}</button>
-              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <label htmlFor="dur-sel" style={{...sLabel,marginBottom:0}}>Duration</label>
                   <select id="dur-sel" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
@@ -118,6 +123,10 @@ export default function GatewaySession() {
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Outer spiral — Presets (col 3, row 2-3) */}
+            <div style={{gridColumn:3,gridRow:"2/4",display:"flex",flexDirection:"column",gap:6,alignSelf:"start"}}>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {Object.keys(PRESETS).map(name=>(
                   <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
@@ -133,6 +142,11 @@ export default function GatewaySession() {
               {preset && <p style={{fontSize:11,color:"#35b0ab",fontStyle:"italic",margin:0}}>
                 {PRESETS[preset]?.description}</p>}
             </div>
+
+            {/* Shell edge — PhaseBar (full width, row 4) */}
+            <div style={{gridColumn:"1/4",gridRow:4}}>
+              <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
+            </div>
           </div>
         ) : (
           <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
@@ -140,8 +154,8 @@ export default function GatewaySession() {
             zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
         )}
 
-        {/* PhaseBar — full width on desktop, below canvas on mobile */}
-        <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
+        {/* PhaseBar — mobile only (desktop PhaseBar is inside the grid) */}
+        {!desktop && <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>}
 
         {/* Mobile: Timer + Controls */}
         {!desktop && (
