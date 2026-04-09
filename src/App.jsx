@@ -24,7 +24,7 @@ const PRESETS = {
     description: "Mind Awake, Body Asleep",
     layers: [
       { label: "Delta Ground", f_base: 100, f_diff_start: 3.0, f_diff_end: 1.5, amp: 0.45, mode: "binaural" },
-      { label: "Alpha\u2192Theta", f_base: 200, f_diff_start: 12.0, f_diff_end: 5.0, amp: 0.3, mode: "binaural" },
+      { label: "Alpha→Theta", f_base: 200, f_diff_start: 12.0, f_diff_end: 5.0, amp: 0.3, mode: "binaural" },
       { label: "Gamma Clarity", f_base: 400, f_diff_start: 40.0, f_diff_end: 40.0, amp: 0.08, mode: "binaural" },
     ],
     noise: 0.15, phases: "Classic Gateway",
@@ -39,7 +39,7 @@ const PRESETS = {
     noise: 0.18, phases: "Classic Gateway",
   },
   "Focus 15": {
-    description: "No Time \u2014 Deep Exploration",
+    description: "No Time — Deep Exploration",
     layers: [
       { label: "Sub-Delta", f_base: 80, f_diff_start: 1.5, f_diff_end: 0.5, amp: 0.5, mode: "binaural" },
       { label: "Deep Theta", f_base: 150, f_diff_start: 6.0, f_diff_end: 3.5, amp: 0.35, mode: "binaural" },
@@ -48,7 +48,7 @@ const PRESETS = {
     noise: 0.22, phases: "Deep Dive",
   },
   "Focus 21": {
-    description: "Bridge State \u2014 Other Systems",
+    description: "Bridge State — Other Systems",
     layers: [
       { label: "Infra-Delta", f_base: 70, f_diff_start: 1.0, f_diff_end: 0.3, amp: 0.5, mode: "binaural" },
       { label: "Theta Cascade", f_base: 130, f_diff_start: 5.0, f_diff_end: 3.0, amp: 0.3, mode: "binaural" },
@@ -69,11 +69,11 @@ const PRESETS = {
 
 const FADE_TIME = 4;
 const BAND_LABELS = [
-  { name: "\u03b4 Delta", range: "0.5\u20134 Hz", color: "#7B2F8C" },
-  { name: "\u03b8 Theta", range: "4\u20138 Hz", color: "#4F6DB5" },
-  { name: "\u03b1 Alpha", range: "8\u201313 Hz", color: "#21908C" },
-  { name: "\u03b2 Beta", range: "13\u201330 Hz", color: "#5DC863" },
-  { name: "\u03b3 Gamma", range: "30\u2013100 Hz", color: "#FDE725" },
+  { name: "δ Delta", range: "0.5–4 Hz", color: "#7B2F8C" },
+  { name: "θ Theta", range: "4–8 Hz", color: "#4F6DB5" },
+  { name: "α Alpha", range: "8–13 Hz", color: "#21908C" },
+  { name: "β Beta", range: "13–30 Hz", color: "#5DC863" },
+  { name: "γ Gamma", range: "30–100 Hz", color: "#FDE725" },
 ];
 
 function getBandColor(f) { return f <= 4 ? "#7B2F8C" : f <= 8 ? "#4F6DB5" : f <= 13 ? "#21908C" : f <= 30 ? "#5DC863" : "#FDE725"; }
@@ -215,12 +215,12 @@ function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) 
           <span style={sVal}>{Math.round(layer.amp*100)}%</span></div>
       </div>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-        <div><label style={sLabel}>Beat \u0394f Start</label>
+        <div><label style={sLabel}>Beat Δf Start</label>
           <input type="range" min={0.3} max={60} step={0.1} value={layer.f_diff_start}
             aria-label={`${layer.label} beat frequency start`}
             onChange={(e)=>onChange({...layer,f_diff_start:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_diff_start.toFixed(1)} Hz</span></div>
-        <div><label style={sLabel}>Beat \u0394f End {hasRamp && <span style={{color:"#21908C"}}>\u2198</span>}</label>
+        <div><label style={sLabel}>Beat Δf End {hasRamp && <span style={{color:"#21908C"}}>↘</span>}</label>
           <input type="range" min={0.3} max={60} step={0.1} value={layer.f_diff_end}
             aria-label={`${layer.label} beat frequency end`}
             onChange={(e)=>onChange({...layer,f_diff_end:+e.target.value})} style={sSlider}/>
@@ -432,7 +432,7 @@ export default function GatewaySession() {
               color:isPlaying?"#fca5a5":"#5DC863",borderRadius:10,padding:"10px 28px",fontSize:13,
               fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
               letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s" }}>
-              {isPlaying?"\u25FC Stop":"\u25B6 Begin"}</button>
+              {isPlaying?"◼ Stop":"▶ Begin"}</button>
             <div style={{ display:"flex",alignItems:"center",gap:6 }}>
               <label style={{...sLabel,marginBottom:0}}>Duration</label>
               <select value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
