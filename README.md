@@ -1,6 +1,8 @@
 # Gateway Session — Binaural Beat Meditation Engine
 
-Interactive real-time binaural beat meditation tool inspired by the Monroe Institute's Gateway Experience. Built with React and Tone.js (Web Audio API).
+Interactive real-time binaural beat meditation tool inspired by the Monroe Institute's Gateway Experience. Cross-platform app built with React, Tone.js (Web Audio API), and Capacitor (iOS/Android/web).
+
+**[Live Demo →](https://pjt222.github.io/gateway/)**
 
 ## Features
 
@@ -34,11 +36,12 @@ Each phase defines:
 - **Custom** — User-configurable
 
 ### UI
-- Real-time waveform visualization (canvas)
-- Circular timer with progress ring
+- **Fractal Beat Visualizer**: Circular concentric rings per layer, pulsating at the mathematically correct beat envelope `cos(π·Δf·t)`, with 3-octave fractal harmonics tied to carrier/beat ratio
+- Circular timer with SVG progress ring
 - Phase progress bar with named segments
-- Brainwave band color coding (δ/θ/α/β/γ)
-- Per-layer BIN/ISO mode toggle
+- Viridis color scheme (δ/θ/α/β/γ brainwave band mapping)
+- Per-layer controls: Carrier (L), Actual (R), volume, beat Δf, BIN/ISO toggle
+- Preset layers band-capped to target brainwave ranges; Custom layers have full adaptive range
 - Global master volume control
 - Up to 6 simultaneous entrainment layers
 - Editable layer labels
@@ -46,37 +49,28 @@ Each phase defines:
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ GatewaySession (main component)                     │
-│                                                     │
-│  State: layers[], noiseLevel, globalVol, duration,  │
-│         phaseName, isPlaying, elapsed, currentDiffs  │
-│                                                     │
-│  Audio Graph (Tone.js):                             │
-│                                                     │
-│  Layer (BIN):  OscL ──→ GainL ──→ PanL(-1) ──┐     │
-│                OscR ──→ GainR ──→ PanR(+1) ──┤     │
-│                                               │     │
-│  Layer (ISO):  Osc ──→ LFO·Gain ──→ Gain ───┤     │
-│                                               │     │
-│  Noise:        Pink ──→ NoiseGain ───────────┤     │
-│                                               ▼     │
-│                                          MasterGain │
-│                                               │     │
-│                                          GlobalGain │
-│                                               │     │
-│                                          Destination │
-│                                               │     │
-│                              Waveform Analyser ─┘   │
-│                                                     │
-│  Ramp Loop (rAF):                                   │
-│    - interpolates f_diff_start → f_diff_end         │
-│    - applies phase modifiers (beatMul, ampMul)      │
-│    - updates oscillator frequencies via rampTo()    │
-│                                                     │
-│  Sub-components:                                    │
-│    WaveCanvas, TimerDisplay, PhaseBar, LayerRow     │
-└─────────────────────────────────────────────────────┘
+src/
+├── constants.js            Data: PRESETS, PHASE_TEMPLATES, BAND_RANGE, BAND_LABELS
+├── utils.js                Pure functions: getBandColor, getBandName, lerp, fmt
+├── FractalBeatCanvas.jsx   Circular fractal beat envelope visualizer (canvas 2D)
+├── components.jsx          PhaseBar, TimerDisplay, LayerRow
+├── useAudioEngine.js       Custom hook: Tone.js audio graph, ramp loop, session control
+└── App.jsx                 Coordinator: state management, presets, layout
+```
+
+### Audio Graph (Tone.js)
+
+```
+Layer (BIN):  OscL ──→ GainL ──→ PanL(-1) ──┐
+              OscR ──→ GainR ──→ PanR(+1) ──┤
+                                              │
+Layer (ISO):  Osc ──→ LFO·Gain ──→ Gain ───┤
+                                              │
+Noise:        Pink ──→ NoiseGain ───────────┤
+                                              ▼
+                                         MasterGain ──→ GlobalGain ──→ Destination
+                                              │
+                                    Waveform Analyser
 ```
 
 ## Setup
@@ -148,4 +142,4 @@ MIT
 
 ## Credits
 Inspired by Robert Monroe's Hemi-Sync® technology and the Gateway Experience program.
-Built with [Tone.js](https://tonejs.github.io/) and React.
+Built with [React](https://react.dev/), [Tone.js](https://tonejs.github.io/), [Vite](https://vite.dev/), and [Capacitor](https://capacitorjs.com/). Color scheme from the [viridis](https://cran.r-project.org/package=viridis) R package.
