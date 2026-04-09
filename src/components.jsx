@@ -62,7 +62,7 @@ const sVal = { fontSize:12,color:"rgba(200,190,230,0.85)",fontFamily:"'JetBrains
 const sSlider = { width:"100%",height:3,appearance:"auto",accentColor:"#3B528B",cursor:"pointer" };
 
 // ─── Layer Row ───
-export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff }) {
+export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff, compact }) {
   const dd = currentDiff ?? layer.f_diff_start;
   const bc = getBandColor(dd), bn = getBandName(dd);
   const hasRamp = Math.abs(layer.f_diff_start - layer.f_diff_end) > 0.1;
@@ -73,33 +73,35 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
   const dfMax = range ? range[1] : 100;
   const actualMin = layer.f_base + dfMin;
   const actualMax = range ? layer.f_base + dfMax : 660;
+  const gGap = compact ? 6 : 10;
   return (
-    <div style={{ background:"rgba(11,9,36,0.7)",border:`1px solid ${bc}22`,borderRadius:10,padding:"12px 14px",
-      display:"flex",flexDirection:"column",gap:8 }}>
+    <div style={{ background:"rgba(11,9,36,0.7)",border:`1px solid ${bc}22`,borderRadius:10,
+      padding:compact?"8px 10px":"12px 14px",display:"flex",flexDirection:"column",gap:compact?4:8 }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:6 }}>
           <div style={{ width:8,height:8,borderRadius:"50%",background:bc,
             boxShadow:isPlaying?`0 0 8px ${bc}`:"none" }}/>
           <input type="text" value={layer.label} onChange={(e)=>onChange({...layer,label:e.target.value})}
-            style={{ background:"transparent",border:"none",color:"#d4d0ec",fontSize:13,
-              fontFamily:"'JetBrains Mono',monospace",fontWeight:500,width:140,outline:"none" }}/>
+            style={{ background:"transparent",border:"none",color:"#d4d0ec",fontSize:compact?12:13,
+              fontFamily:"'JetBrains Mono',monospace",fontWeight:500,width:compact?100:140,outline:"none" }}/>
         </div>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:compact?4:6 }}>
           <button onClick={()=>onChange({...layer,mode:iso?"binaural":"isochronal"})}
             aria-pressed={iso} aria-label={`Mode: ${iso?"isochronal":"binaural"}`} style={{
-            fontSize:10,padding:"4px 10px",borderRadius:5,cursor:"pointer",minHeight:32,
+            fontSize:10,padding:compact?"2px 8px":"4px 10px",borderRadius:5,cursor:"pointer",minHeight:compact?28:32,
             fontFamily:"'JetBrains Mono',monospace",border:"1px solid",
             background:iso?"rgba(211,67,110,0.12)":"rgba(68,1,84,0.12)",
             borderColor:iso?"rgba(211,67,110,0.3)":"rgba(68,1,84,0.2)",
             color:iso?"#F8765C":"#7AD5D6" }}>{iso?"ISO":"BIN"}</button>
-          <span style={{ fontSize:10,color:bc,background:`${bc}15`,padding:"2px 8px",borderRadius:6,
-            fontFamily:"'JetBrains Mono',monospace" }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
+          <span style={{ fontSize:compact?9:10,color:bc,background:`${bc}15`,padding:"2px 6px",borderRadius:6,
+            fontFamily:"'JetBrains Mono',monospace",whiteSpace:"nowrap" }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
           <button onClick={onRemove} aria-label={`Remove ${layer.label}`} style={{ background:"transparent",border:"none",
-            color:"rgba(200,180,220,0.5)",cursor:"pointer",fontSize:18,padding:"8px 10px",lineHeight:1,minWidth:44,minHeight:44,
+            color:"rgba(200,180,220,0.5)",cursor:"pointer",fontSize:compact?16:18,padding:compact?"4px 6px":"8px 10px",
+            lineHeight:1,minWidth:compact?32:44,minHeight:compact?32:44,
             display:"flex",alignItems:"center",justifyContent:"center" }}>&times;</button>
         </div>
       </div>
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
         <div><label style={sLabel}>Carrier (L)</label>
           <input type="range" min={0} max={600} step={1} value={layer.f_base}
             aria-label={`${layer.label} carrier frequency`}
@@ -115,7 +117,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
             }} style={sSlider}/>
           <span style={sVal}>{(layer.f_base + dd).toFixed(1)} Hz</span></div>
       </div>
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
         <div><label style={sLabel}>Volume</label>
           <input type="range" min={0} max={100} step={1} value={Math.round(layer.amp*100)}
             aria-label={`${layer.label} volume`}
@@ -127,7 +129,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
             onChange={(e)=>onChange({...layer,f_diff_start:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_diff_start.toFixed(1)} Hz</span></div>
       </div>
-      {hasRamp && <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+      {hasRamp && <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
         <div/>
         <div><label style={sLabel}>Beat Δf End <span style={{color:"#21908C"}}>↘</span></label>
           <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_end}
