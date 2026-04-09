@@ -34,5 +34,5 @@ android/capacitor-cordova-android-plugins/build/
 Thumbs.db
 
 # Environment
-.env
-.env.local
+.env*
+!.env.example
