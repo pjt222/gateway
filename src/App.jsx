@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { PRESETS, PHASE_TEMPLATES, BAND_LABELS } from "./constants";
 import { useAudioEngine } from "./useAudioEngine";
 import FractalBeatCanvas from "./FractalBeatCanvas";
-import ThreeVisualizer from "./ThreeVisualizer";
 import { PhaseBar, TimerDisplay, LayerRow } from "./components";
 
 const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
@@ -83,11 +82,11 @@ export default function GatewaySession() {
               </div>
             </div>
 
-            {/* Center — 3D Visualizer */}
+            {/* Center — Canvas */}
             <div style={{flex:"0 0 auto"}}>
-              <ThreeVisualizer layers={layers} currentDiffs={currentDiffs}
-                isPlaying={isPlaying} noiseLevel={noiseLevel} size={360}
-                onToggleZen={()=>setZenMode(z=>!z)} />
+              <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+                isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+                zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
             </div>
 
             {/* Right — Controls + Presets (φ-symmetric: 310px max) */}
@@ -139,13 +138,6 @@ export default function GatewaySession() {
           <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
             isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
             zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
-        )}
-
-        {/* Zen mode overlay — 2D fullscreen canvas (desktop uses Three.js normally, zen uses 2D) */}
-        {desktop && zenMode && (
-          <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-            isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
-            zenMode={true} onToggleZen={()=>setZenMode(false)} />
         )}
 
         {/* PhaseBar — full width on desktop, below canvas on mobile */}
