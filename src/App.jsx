@@ -59,9 +59,9 @@ export default function GatewaySession() {
 
         {/* ── Cockpit: Timer|Canvas|Controls on desktop ── */}
         {desktop ? (
-          <div style={{display:"flex",gap:20,alignItems:"center"}}>
+          <div style={{display:"flex",gap:20,alignItems:"center",justifyContent:"center"}}>
             {/* Left — Timer + Volume */}
-            <div style={{flex:"0 0 auto",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+            <div style={{flex:"1 1 0",maxWidth:300,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
               <TimerDisplay elapsed={elapsed} duration={totalSec}/>
               <div style={{width:140,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
                 borderRadius:10,padding:"8px 12px"}}>
@@ -90,7 +90,7 @@ export default function GatewaySession() {
             </div>
 
             {/* Right — Controls + Presets */}
-            <div style={{flex:1,display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
+            <div style={{flex:"1 1 0",maxWidth:300,display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
               <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
                 background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
@@ -244,10 +244,10 @@ export default function GatewaySession() {
               opacity:layers.length>=6||isPlaying?0.3:1 }}>+ Add</button>
           </div>
           <div className={desktop?"controls-scroll":undefined} style={desktop
-            ?{display:"flex",flexWrap:"wrap",gap:8,flex:1,minHeight:0,overflowY:"auto",alignContent:"flex-start"}
+            ?{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,flex:1,minHeight:0,overflowY:"auto",alignContent:"start"}
             :{display:"flex",flexDirection:"column",gap:8}}>
             {layers.map((l,i)=>(
-              <div key={i} style={desktop?{flex:"1 1 calc(33.333% - 6px)",minWidth:340}:undefined}>
+              <div key={i}>
                 <LayerRow layer={l} index={i} onChange={u=>updateLayer(i,u)}
                   onRemove={()=>removeLayer(i)} isPlaying={isPlaying} currentDiff={currentDiffs[i]}
                   compact={desktop}/>
@@ -255,7 +255,7 @@ export default function GatewaySession() {
             ))}
             {/* Pink Noise — inline in grid on desktop */}
             {desktop && (
-              <div style={{ flex:"1 1 calc(33.333% - 6px)",minWidth:340,background:"rgba(11,9,36,0.7)",
+              <div style={{ background:"rgba(11,9,36,0.7)",
                 border:"1px solid rgba(59,82,139,0.1)",borderRadius:10,padding:"8px 10px",
                 display:"flex",flexDirection:"column",justifyContent:"center" }}>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
