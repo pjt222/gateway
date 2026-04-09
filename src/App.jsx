@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PRESETS, PHASE_TEMPLATES, BAND_LABELS } from "./constants";
 import { useAudioEngine } from "./useAudioEngine";
 import FractalBeatCanvas from "./FractalBeatCanvas";
@@ -17,6 +17,13 @@ export default function GatewaySession() {
   const [duration, setDuration] = useState(15);
   const [phaseName, setPhaseName] = useState("Classic Gateway");
   const [zenMode, setZenMode] = useState(false);
+  const [tallVp, setTallVp] = useState(() => window.innerHeight >= 768);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-height: 768px)');
+    const h = (e) => setTallVp(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
 
   const { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, startSession, stopSession } =
     useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseName });
@@ -35,10 +42,11 @@ export default function GatewaySession() {
     {label:`Layer ${prev.length+1}`,f_base:200,f_diff_start:6.0,f_diff_end:6.0,amp:0.2,mode:"binaural"}]); };
 
   return (
-    <div style={{ minHeight:"100vh",background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
+    <div style={{ ...(tallVp?{height:"100vh",overflow:"hidden"}:{minHeight:"100vh"}),
+      background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
       color:"#e2e0f0",fontFamily:"'Instrument Sans','DM Sans',system-ui,sans-serif",
       padding:"32px 20px",display:"flex",justifyContent:"center" }}>
-      <div style={{ width:"100%",maxWidth:560 }}>
+      <div style={{ width:"100%",maxWidth:560,...(tallVp?{display:"flex",flexDirection:"column"}:{}) }}>
 
         {/* Header */}
         <div style={{ marginBottom:24,textAlign:"center" }}>
@@ -53,6 +61,8 @@ export default function GatewaySession() {
           isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
           zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
         <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
+
+        <div className="controls-scroll" style={tallVp?{flex:1,minHeight:0,overflowY:"auto"}:undefined}>
 
         {/* Timer + Controls */}
         <div style={{ marginTop:16,display:"flex",flexDirection:"column",alignItems:"center",gap:14 }}>
@@ -176,6 +186,7 @@ export default function GatewaySession() {
         <p style={{ textAlign:"center",fontSize:10,color:"rgba(33,144,140,0.5)",marginTop:28,
           fontFamily:"'JetBrains Mono',monospace" }}>
           Web Audio API &middot; Phase-modulated frequency ramping &middot; All parameters live-adjustable</p>
+        </div>
       </div>
     </div>
   );
