@@ -10,7 +10,7 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
 
   const oscRefs = useRef([]); const noiseRef = useRef(null); const noiseGainRef = useRef(null);
   const masterGainRef = useRef(null); const globalGainRef = useRef(null);
-  const analyserRef = useRef(null); const timerRef = useRef(null);
+  const analyserRef = useRef(null); const noiseAnalyserRef = useRef(null); const timerRef = useRef(null);
   const startTimeRef = useRef(null); const rampRef = useRef(null);
   const layersSnap = useRef(layers); const noiseLevelSnap = useRef(noiseLevel);
   useEffect(()=>{layersSnap.current=layers;},[layers]);
@@ -41,6 +41,7 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     try{masterGainRef.current?.dispose();}catch(e){}
     try{globalGainRef.current?.dispose();}catch(e){}
     try{analyserRef.current?.dispose();}catch(e){}
+    try{noiseAnalyserRef.current?.dispose();}catch(e){}
   }, []);
 
   const buildAudio = useCallback(async () => {
@@ -75,6 +76,7 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     const nG = new Tone.Gain(noiseLevel).connect(master);
     const noise = new Tone.Noise("pink").connect(nG); noise.start();
     noiseRef.current = noise; noiseGainRef.current = nG;
+    const noiseAn = new Tone.Waveform(256); nG.connect(noiseAn); noiseAnalyserRef.current = noiseAn;
     master.gain.rampTo(0.9, FADE_TIME);
   }, [layers, noiseLevel, globalVol, disposeAll]);
 
@@ -159,5 +161,5 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     return () => window.removeEventListener('capacitor-app-state', handler);
   }, [isPlaying, startRampLoop]);
 
-  return { isPlaying, elapsed, currentDiffs, analyserRef, startSession, stopSession };
+  return { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, startSession, stopSession };
 }

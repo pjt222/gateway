@@ -16,8 +16,9 @@ export default function GatewaySession() {
   const [globalVol, setGlobalVol] = useState(75);
   const [duration, setDuration] = useState(15);
   const [phaseName, setPhaseName] = useState("Classic Gateway");
+  const [zenMode, setZenMode] = useState(false);
 
-  const { isPlaying, elapsed, currentDiffs, analyserRef, startSession, stopSession } =
+  const { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, startSession, stopSession } =
     useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseName });
 
   const phases = PHASE_TEMPLATES[phaseName] || PHASE_TEMPLATES["Steady State"];
@@ -48,8 +49,9 @@ export default function GatewaySession() {
             Binaural &middot; Isochronal &middot; Phase Scripting &middot; Stereo Headphones Required</p>
         </div>
 
-        <FractalBeatCanvas analyserRef={analyserRef} isPlaying={isPlaying}
-          currentDiffs={currentDiffs} layers={layers} elapsed={elapsed} />
+        <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+          isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+          zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
         <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
 
         {/* Timer + Controls */}
