@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { PRESETS, PHASE_TEMPLATES, BAND_LABELS } from "./constants";
 import { useAudioEngine } from "./useAudioEngine";
-import FractalBeatCanvas from "./FractalBeatCanvas";
+import CymaticsCanvas from "./CymaticsCanvas";
 import { PhaseBar, TimerDisplay, LayerRow } from "./components";
 
 const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
@@ -25,7 +25,7 @@ export default function GatewaySession() {
     return () => mq.removeEventListener('change', h);
   }, []);
 
-  const { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, startSession, stopSession } =
+  const { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession } =
     useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseName });
 
   const phases = PHASE_TEMPLATES[phaseName] || PHASE_TEMPLATES["Steady State"];
@@ -64,8 +64,9 @@ export default function GatewaySession() {
 
             {/* Eye — Canvas (rows 1-3, col 2) */}
             <div style={{gridColumn:2,gridRow:"1/4",justifySelf:"center"}}>
-              <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-                isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+              <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+                fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
+                layers={layers} elapsed={elapsed}
                 zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
             </div>
 
@@ -149,8 +150,9 @@ export default function GatewaySession() {
             </div>
           </div>
         ) : (
-          <FractalBeatCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-            isPlaying={isPlaying} currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+          <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+            fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
+            layers={layers} elapsed={elapsed}
             zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
         )}
 

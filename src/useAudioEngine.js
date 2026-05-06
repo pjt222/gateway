@@ -10,7 +10,8 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
 
   const oscRefs = useRef([]); const noiseRef = useRef(null); const noiseGainRef = useRef(null);
   const masterGainRef = useRef(null); const globalGainRef = useRef(null);
-  const analyserRef = useRef(null); const noiseAnalyserRef = useRef(null); const timerRef = useRef(null);
+  const analyserRef = useRef(null); const noiseAnalyserRef = useRef(null);
+  const fftAnalyserRef = useRef(null); const timerRef = useRef(null);
   const startTimeRef = useRef(null); const rampRef = useRef(null);
   const layersSnap = useRef(layers); const noiseLevelSnap = useRef(noiseLevel);
   useEffect(()=>{layersSnap.current=layers;},[layers]);
@@ -42,6 +43,7 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     try{globalGainRef.current?.dispose();}catch(e){}
     try{analyserRef.current?.dispose();}catch(e){}
     try{noiseAnalyserRef.current?.dispose();}catch(e){}
+    try{fftAnalyserRef.current?.dispose();}catch(e){}
   }, []);
 
   const buildAudio = useCallback(async () => {
@@ -51,6 +53,8 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     const master = new Tone.Gain(0).connect(gGain);
     masterGainRef.current = master;
     const analyser = new Tone.Waveform(1024); master.connect(analyser); analyserRef.current = analyser;
+    const fftAnalyser = new Tone.FFT({ size: 1024, smoothing: 0.8 });
+    master.connect(fftAnalyser); fftAnalyserRef.current = fftAnalyser;
 
     const pairs = layers.map(l => {
       if (l.mode === "isochronal") {
@@ -161,5 +165,5 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     return () => window.removeEventListener('capacitor-app-state', handler);
   }, [isPlaying, startRampLoop]);
 
-  return { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, startSession, stopSession };
+  return { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession };
 }
