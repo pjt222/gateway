@@ -1,8 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { PRESETS, PHASE_TEMPLATES, BAND_LABELS } from "./constants";
 import { useAudioEngine } from "./useAudioEngine";
 import CymaticsCanvas from "./CymaticsCanvas";
 import { PhaseBar, TimerDisplay, LayerRow } from "./components";
+
+const CymaticsCanvas3D = lazy(() => import("./CymaticsCanvas3D"));
+
+const Viz3DFallback = () => (
+  <div style={{ width: 300, height: 300, borderRadius: 12, background: "#000004",
+    border: "1px solid rgba(59,82,139,0.15)", display: "flex", alignItems: "center",
+    justifyContent: "center", color: "rgba(33,144,140,0.5)",
+    fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: "0.1em" }}>
+    Loading 3D…
+  </div>
+);
 
 const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
   letterSpacing:"0.08em",display:"block",marginBottom:2,fontFamily:"'JetBrains Mono',monospace" };
@@ -17,6 +28,7 @@ export default function GatewaySession() {
   const [duration, setDuration] = useState(15);
   const [phaseName, setPhaseName] = useState("Classic Gateway");
   const [zenMode, setZenMode] = useState(false);
+  const [viz3D, setViz3D] = useState(false);
   const [desktop, setDesktop] = useState(() => window.innerHeight >= 768 && window.innerWidth >= 768);
   useEffect(() => {
     const mq = window.matchMedia('(min-height: 768px) and (min-width: 768px)');
@@ -64,10 +76,20 @@ export default function GatewaySession() {
 
             {/* Eye — Canvas (rows 1-3, col 2) */}
             <div style={{gridColumn:2,gridRow:"1/4",justifySelf:"center"}}>
-              <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-                fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
-                layers={layers} elapsed={elapsed}
-                zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
+              {viz3D ? (
+                <Suspense fallback={<Viz3DFallback />}>
+                  <CymaticsCanvas3D fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying}
+                    currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+                    zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
+                    onToggle3D={()=>setViz3D(false)} />
+                </Suspense>
+              ) : (
+                <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+                  fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
+                  layers={layers} elapsed={elapsed}
+                  zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
+                  onToggle3D={()=>setViz3D(true)} />
+              )}
             </div>
 
             {/* Inner whorl — Volume (col 1, row 1-2, centered on canvas) */}
@@ -150,10 +172,20 @@ export default function GatewaySession() {
             </div>
           </div>
         ) : (
-          <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-            fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
-            layers={layers} elapsed={elapsed}
-            zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)} />
+          viz3D ? (
+            <Suspense fallback={<Viz3DFallback />}>
+              <CymaticsCanvas3D fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying}
+                currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
+                zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
+                onToggle3D={()=>setViz3D(false)} />
+            </Suspense>
+          ) : (
+            <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+              fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
+              layers={layers} elapsed={elapsed}
+              zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
+              onToggle3D={()=>setViz3D(true)} />
+          )
         )}
 
         {/* PhaseBar — mobile only (desktop PhaseBar is inside the grid) */}

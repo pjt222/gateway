@@ -53,7 +53,7 @@ function pickRadialMode(carrierFrequency) {
 }
 
 export default function CymaticsCanvas({
-  fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen,
+  fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen, onToggle3D,
 }) {
   const canvasRef = useRef(null);
   const animationFrameRef = useRef(null);
@@ -315,18 +315,30 @@ export default function CymaticsCanvas({
           display: "block", margin: "0 auto",
         }}
         title="Click for zen mode" />
-      <button onClick={onToggleZen} aria-label="Zen mode" title="Zen mode"
-        style={{
-          position: "absolute", top: 8, right: 8, background: "rgba(0,0,4,0.5)",
-          border: "1px solid rgba(59,82,139,0.2)", borderRadius: 6, padding: "5px 7px",
-          cursor: "pointer", color: "rgba(33,144,140,0.5)", lineHeight: 1,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          strokeWidth="2" strokeLinecap="round">
-          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
-        </svg>
-      </button>
+      <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>
+        {onToggle3D && (
+          <button onClick={onToggle3D} aria-label="Switch to 3D view" title="Switch to 3D"
+            style={{
+              background: "rgba(11,9,36,0.92)", border: "1px solid rgba(93,200,99,0.55)",
+              borderRadius: 6, padding: "6px 10px", cursor: "pointer",
+              color: "#5DC863", lineHeight: 1, fontWeight: 600,
+              fontSize: 11, fontFamily: "'JetBrains Mono',monospace", letterSpacing: "0.08em",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>3D</button>
+        )}
+        <button onClick={onToggleZen} aria-label="Zen mode" title="Zen mode"
+          style={{
+            background: "rgba(0,0,4,0.5)", border: "1px solid rgba(59,82,139,0.2)",
+            borderRadius: 6, padding: "5px 7px", cursor: "pointer",
+            color: "rgba(33,144,140,0.5)", lineHeight: 1,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round">
+            <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
