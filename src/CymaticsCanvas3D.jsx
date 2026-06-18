@@ -396,7 +396,7 @@ export default function CymaticsCanvas3D({
         className={isPlaying ? "gw-live" : undefined}
         onClick={onToggleZen}
         role="button" tabIndex={0}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleZen?.(); } }}
+        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " " || e.key === "Spacebar") && !e.repeat) { e.preventDefault(); onToggleZen?.(); } }}
         title="Click for zen mode"
         style={{
           width: "100%", aspectRatio: "1", borderRadius: 12, overflow: "hidden",

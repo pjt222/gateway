@@ -338,7 +338,7 @@ export default function CymaticsCanvas({
         className={isPlaying ? "gw-live" : undefined}
         onClick={onToggleZen}
         role="button" tabIndex={0}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleZen?.(); } }}
+        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " " || e.key === "Spacebar") && !e.repeat) { e.preventDefault(); onToggleZen?.(); } }}
         aria-label="Cymatic standing-wave visualizer — activate for zen mode"
         style={{
           width: "100%", height: "100%", borderRadius: 12,

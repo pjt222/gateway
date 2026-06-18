@@ -53,7 +53,7 @@ export default function GatewaySession() {
       }
       return `Now in the ${phases[idx].name} phase`;
     }
-    if (elapsed > 0) return elapsed >= totalSec - 0.6 ? "Session complete" : "Session stopped";
+    if (elapsed > 0) return elapsed >= totalSec ? "Session complete" : "Session stopped";
     return "";
   })();
 
