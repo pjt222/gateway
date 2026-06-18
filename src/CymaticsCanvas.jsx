@@ -3,6 +3,7 @@ import * as Tone from "tone";
 import {
   BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_TS, BESSEL_X_MAX,
 } from "./bessel";
+import { watchMedia } from "./utils";
 
 const GRID = 200;
 const BAND_TO_N = { delta: 1, theta: 2, alpha: 3, beta: 4, gamma: 5 };
@@ -107,13 +108,7 @@ export default function CymaticsCanvas({
     if (isPlaying) playStartTimeRef.current = performance.now() / 1000;
     else playStartTimeRef.current = null;
   }, [isPlaying]);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => { reducedMotionRef.current = mq.matches; };
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
+  useEffect(() => watchMedia("(prefers-reduced-motion: reduce)", (m) => { reducedMotionRef.current = m; }), []);
 
   useEffect(() => {
     const canvas = canvasRef.current;

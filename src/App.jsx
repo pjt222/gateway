@@ -4,6 +4,7 @@ import { useAudioEngine } from "./useAudioEngine";
 import CymaticsCanvas from "./CymaticsCanvas";
 import { PhaseBar, TimerDisplay, LayerRow } from "./components";
 import { sLabel, sVal, sSlider } from "./styles";
+import { watchMedia } from "./utils";
 
 const CymaticsCanvas3D = lazy(() => import("./CymaticsCanvas3D"));
 
@@ -29,12 +30,7 @@ export default function GatewaySession() {
   // common short-but-wide laptop (1366x768 -> ~660px viewport) gets the desktop layout
   // instead of being dumped into the tall mobile scroll. The eye already shrinks via vh.
   const [desktop, setDesktop] = useState(() => window.innerWidth >= 900 && window.innerHeight >= 600);
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 900px) and (min-height: 600px)');
-    const h = (e) => setDesktop(e.matches);
-    mq.addEventListener('change', h);
-    return () => mq.removeEventListener('change', h);
-  }, []);
+  useEffect(() => watchMedia('(min-width: 900px) and (min-height: 600px)', setDesktop), []);
 
   const { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession } =
     useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseName });

@@ -4,6 +4,7 @@ import * as Tone from "tone";
 import {
   BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_X_MAX, BESSEL_TABLE_SIZE,
 } from "./bessel";
+import { watchMedia } from "./utils";
 
 const SHELL_COUNT = 5;
 const SHELL_LEVELS = [0.18, 0.32, 0.46, 0.60, 0.74];
@@ -173,13 +174,7 @@ export default function CymaticsCanvas3D({
     if (isPlaying) playStartRef.current = performance.now() / 1000;
     else playStartRef.current = null;
   }, [isPlaying]);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => { reducedMotionRef.current = mq.matches; };
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
+  useEffect(() => watchMedia("(prefers-reduced-motion: reduce)", (m) => { reducedMotionRef.current = m; }), []);
 
   useEffect(() => {
     const container = containerRef.current;
