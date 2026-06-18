@@ -32,7 +32,7 @@ export default function GatewaySession() {
   const [desktop, setDesktop] = useState(() => window.innerWidth >= 900 && window.innerHeight >= 600);
   useEffect(() => watchMedia('(min-width: 900px) and (min-height: 600px)', setDesktop), []);
 
-  const { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession } =
+  const { isPlaying, elapsed, completed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession } =
     useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseName });
 
   const phases = PHASE_TEMPLATES[phaseName] || PHASE_TEMPLATES["Steady State"];
@@ -53,7 +53,7 @@ export default function GatewaySession() {
       }
       return `Now in the ${phases[idx].name} phase`;
     }
-    if (elapsed > 0) return elapsed >= totalSec ? "Session complete" : "Session stopped";
+    if (elapsed > 0) return completed ? "Session complete" : "Session stopped";
     return "";
   })();
 

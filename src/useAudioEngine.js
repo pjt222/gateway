@@ -7,6 +7,10 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   const [isPlaying, setIsPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [currentDiffs, setCurrentDiffs] = useState([]);
+  // True only when the session ran to its natural end (timer reached duration),
+  // so consumers can distinguish "complete" from a manual stop without inferring
+  // it from elapsed vs the (mutable) duration afterwards.
+  const [completed, setCompleted] = useState(false);
 
   const oscRefs = useRef([]); const noiseRef = useRef(null); const noiseGainRef = useRef(null);
   const masterGainRef = useRef(null); const globalGainRef = useRef(null);
@@ -135,11 +139,11 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
 
   const startSession = useCallback(async () => {
     await buildAudio();
-    setElapsed(0); setCurrentDiffs(layers.map(l=>l.f_diff_start));
+    setElapsed(0); setCurrentDiffs(layers.map(l=>l.f_diff_start)); setCompleted(false);
     startTimeRef.current = Date.now(); setIsPlaying(true);
     timerRef.current = setInterval(()=>{
       const s=(Date.now()-startTimeRef.current)/1000; setElapsed(s);
-      if (s >= duration*60) stopSession();
+      if (s >= duration*60) { setCompleted(true); stopSession(); }
     }, 250);
     startRampLoop();
   }, [buildAudio, duration, layers, startRampLoop, stopSession]);
@@ -165,5 +169,5 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     return () => window.removeEventListener('capacitor-app-state', handler);
   }, [isPlaying, startRampLoop]);
 
-  return { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession };
+  return { isPlaying, elapsed, completed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession };
 }
