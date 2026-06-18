@@ -11,20 +11,19 @@ import { watchMedia } from "./utils";
 
 const BAND_TO_N = { delta: 1, theta: 2, alpha: 3, beta: 4, gamma: 5 };
 
-// Settle speed knob. uK (drift) and uDamp (settling) are derived from one number S
-// so they scale together and the damping ratio stays constant — i.e. faster settle
-// without overshoot/flicker. Settle time ≈ 2500ms / S (S=1 ≈ 2.5s calm sand,
-// S=2.5 ≈ 1s, S=10 ≈ 250ms; above ~25 it hits the 60fps frame floor and gets noisy).
-// Live-tunable for experimentation: set `window.__sandSpeed = 5` in the console.
+// Settle speed knob (driven by the "Settle" UI slider via the sandSpeed prop).
+// uK (drift) and uDamp (settling) are derived from one number S so they scale
+// together and the damping ratio stays constant — i.e. faster settle without
+// overshoot/flicker. Settle time ≈ 2500ms / S (S=1 ≈ 2.5s calm sand, S=2.5 ≈ 1s,
+// S=10 ≈ 250ms; above SAND_SPEED_MAX it hits the 60fps frame floor and gets noisy).
 const SAND_SPEED_DEFAULT = 2.5;
+const SAND_SPEED_MIN = 1;
+const SAND_SPEED_MAX = 12;
 const BASE_K = 0.28;          // drift strength at S=1
 const BASE_DAMP = 0.9;        // per-(1/60)s velocity retention at S=1
 const BASE_JITTER = 0.14;     // hop magnitude (fixed; spreads grains along the node)
 const BASE_NODE_WIDTH = 0.12; // |u| glow band at S=1 (widens with S so fast/thin lines stay lit)
-function sandSpeed() {
-  const s = typeof window !== "undefined" && +window.__sandSpeed;
-  return Math.max(0.5, Math.min(25, s || SAND_SPEED_DEFAULT));
-}
+const clampSpeed = (s) => Math.max(SAND_SPEED_MIN, Math.min(SAND_SPEED_MAX, s || SAND_SPEED_DEFAULT));
 
 // Angular mode n (number of nodal diameters) and radial mode m (nodal circles),
 // mapped from the layer's band and carrier — identical to the nodal-shell viz so
@@ -194,7 +193,7 @@ void main() {
 
 export default function CymaticsParticles3D({
   fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen, onToggle3D,
-  viz3DMode, onSet3DMode,
+  viz3DMode, onSet3DMode, sandSpeed = SAND_SPEED_DEFAULT, onSandSpeed,
 }) {
   const containerRef = useRef(null);
   const zenDialogRef = useRef(null);
@@ -202,6 +201,8 @@ export default function CymaticsParticles3D({
   const diffsRef = useRef(currentDiffs);
   const isPlayingRef = useRef(isPlaying);
   const playStartRef = useRef(null);
+  const sandSpeedRef = useRef(sandSpeed);
+  useEffect(() => { sandSpeedRef.current = sandSpeed; }, [sandSpeed]);
   const reducedMotionRef = useRef(
     typeof window !== "undefined" && window.matchMedia
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -427,7 +428,7 @@ export default function CymaticsParticles3D({
         // snappier without overshoot). Faster settling concentrates grains on a thinner
         // node curve, so widen the glow band with S to keep the line visible/dense.
         // Read live so window.__sandSpeed tunes it on the fly.
-        const S = sandSpeed();
+        const S = clampSpeed(sandSpeedRef.current);
         computeUniforms.uK.value = BASE_K * S * S;
         computeUniforms.uDamp.value = Math.pow(BASE_DAMP, S);
         pointsMaterial.uniforms.uNodeWidth.value = BASE_NODE_WIDTH * Math.pow(S, 0.5);
@@ -533,6 +534,9 @@ export default function CymaticsParticles3D({
     );
   }
 
+  const settleMs = Math.round(2500 / clampSpeed(sandSpeed));
+  const settleLabel = settleMs >= 1000 ? `${(settleMs / 1000).toFixed(1)}s` : `${settleMs}ms`;
+
   return (
     <div style={{ position: "relative", margin: "0 auto", width: "100%", maxWidth: 560 }}>
       <div ref={containerRef} aria-label="3D drifting-sand cymatic visualizer — activate for zen mode"
@@ -555,6 +559,25 @@ export default function CymaticsParticles3D({
             <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
           </svg>
         </button>
+      </div>
+      {/* Settle-speed control: how fast the grains chase the nodal lines after a
+          field change. Overlaid bottom-center; a sibling of the canvas so it never
+          triggers the canvas's click-to-zen. */}
+      <div onClick={(e) => e.stopPropagation()} style={{
+        position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)",
+        display: "flex", alignItems: "center", gap: 8, zIndex: 10,
+        background: "rgba(11,9,36,0.82)", border: "1px solid var(--border-2)",
+        borderRadius: 8, padding: "5px 10px",
+      }}>
+        <label htmlFor="sand-settle" style={{ fontSize: 9, letterSpacing: "0.08em",
+          textTransform: "uppercase", color: "var(--teal-label)", fontFamily: "'JetBrains Mono',monospace" }}>
+          Settle</label>
+        <input id="sand-settle" type="range" min={SAND_SPEED_MIN} max={SAND_SPEED_MAX} step={0.1}
+          value={sandSpeed} aria-label="Sand settle speed"
+          onChange={(e) => onSandSpeed?.(+e.target.value)}
+          style={{ width: 88, accentColor: "var(--slider)", cursor: "pointer" }} />
+        <span style={{ fontSize: 9, color: "var(--accent)", fontFamily: "'JetBrains Mono',monospace",
+          minWidth: 36, textAlign: "right" }}>{settleLabel}</span>
       </div>
     </div>
   );

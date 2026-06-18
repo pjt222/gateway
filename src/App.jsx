@@ -29,6 +29,8 @@ export default function GatewaySession() {
   const [viz3D, setViz3D] = useState(false);
   // Sub-mode inside the 3D view: nodal "shells" or drifting Chladni "particles".
   const [viz3DMode, setViz3DMode] = useState("shells");
+  // Drifting-sand settle speed (S): higher = grains track slider changes faster.
+  const [sandSpeed, setSandSpeed] = useState(2.5);
   // Width chooses the form (chambers vs stack); height only needs a low floor so the
   // common short-but-wide laptop (1366x768 -> ~660px viewport) gets the desktop layout
   // instead of being dumped into the tall mobile scroll. The eye already shrinks via vh.
@@ -78,6 +80,7 @@ export default function GatewaySession() {
     onToggleZen: () => setZenMode(z => !z),
     onToggle3D: () => setViz3D(false),
     viz3DMode, onSet3DMode: setViz3DMode,
+    sandSpeed, onSandSpeed: setSandSpeed,
   };
   const vizCanvas = viz3D ? (
     <Suspense fallback={<Viz3DFallback />}>
