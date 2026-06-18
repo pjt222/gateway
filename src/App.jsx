@@ -71,9 +71,9 @@ export default function GatewaySession() {
     <div style={{ minHeight:"100vh",
       background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
       color:"var(--text-1)",fontFamily:"'Instrument Sans','DM Sans',system-ui,sans-serif",
-      padding:desktop?"24px 20px":"32px 20px",display:"flex",justifyContent:"center",
-      ...(desktop?{alignItems:"safe center"}:{}) }}>
-      <main style={{ width:"100%",maxWidth:desktop?1100:560,...(desktop?{display:"flex",flexDirection:"column"}:{}) }}>
+      padding:desktop?"24px 20px":"32px 20px",display:"flex",justifyContent:"center" }}>
+      <main style={{ width:"100%",maxWidth:desktop?1100:560,
+        ...(desktop?{display:"flex",flexDirection:"column",margin:"auto"}:{}) }}>
 
         {/* Header */}
         <div style={{ marginBottom:desktop?10:24,textAlign:"center" }}>

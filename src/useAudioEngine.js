@@ -138,8 +138,11 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   }, [disposeAll]);
 
   const startSession = useCallback(async () => {
-    await buildAudio();
+    // Reset session state before the async audio build so the live region / UI
+    // don't keep reporting the previous run's "complete" state during startup
+    // (and so a rejected buildAudio() leaves a clean, not stale, state).
     setElapsed(0); setCurrentDiffs(layers.map(l=>l.f_diff_start)); setCompleted(false);
+    await buildAudio();
     startTimeRef.current = Date.now(); setIsPlaying(true);
     timerRef.current = setInterval(()=>{
       const s=(Date.now()-startTimeRef.current)/1000; setElapsed(s);
