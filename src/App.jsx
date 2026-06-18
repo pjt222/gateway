@@ -7,6 +7,7 @@ import { sLabel, sVal, sSlider } from "./styles";
 import { watchMedia } from "./utils";
 
 const CymaticsCanvas3D = lazy(() => import("./CymaticsCanvas3D"));
+const CymaticsParticles3D = lazy(() => import("./CymaticsParticles3D"));
 
 const Viz3DFallback = () => (
   <div style={{ width: 300, height: 300, borderRadius: 12, background: "#000004",
@@ -26,6 +27,8 @@ export default function GatewaySession() {
   const [phaseName, setPhaseName] = useState("Classic Gateway");
   const [zenMode, setZenMode] = useState(false);
   const [viz3D, setViz3D] = useState(false);
+  // Sub-mode inside the 3D view: nodal "shells" or drifting Chladni "particles".
+  const [viz3DMode, setViz3DMode] = useState("shells");
   // Width chooses the form (chambers vs stack); height only needs a low floor so the
   // common short-but-wide laptop (1366x768 -> ~660px viewport) gets the desktop layout
   // instead of being dumped into the tall mobile scroll. The eye already shrinks via vh.
@@ -67,6 +70,28 @@ export default function GatewaySession() {
   const addLayer = () => { if(layers.length>=6) return; setLayers(prev=>[...prev,
     {label:`Layer ${prev.length+1}`,f_base:200,f_diff_start:6.0,f_diff_end:6.0,amp:0.2,mode:"binaural"}]); };
 
+  // The visualizer is rendered identically in both the desktop grid and the
+  // mobile stack, so build it once. 2D canvas, or the lazy 3D view (nodal shells
+  // or drifting sand per viz3DMode); the 3D components carry the mode picker.
+  const viz3DCommon = {
+    fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode,
+    onToggleZen: () => setZenMode(z => !z),
+    onToggle3D: () => setViz3D(false),
+    viz3DMode, onSet3DMode: setViz3DMode,
+  };
+  const vizCanvas = viz3D ? (
+    <Suspense fallback={<Viz3DFallback />}>
+      {viz3DMode === "particles"
+        ? <CymaticsParticles3D {...viz3DCommon} />
+        : <CymaticsCanvas3D {...viz3DCommon} />}
+    </Suspense>
+  ) : (
+    <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
+      fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
+      layers={layers} zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
+      onToggle3D={()=>setViz3D(true)} />
+  );
+
   return (
     <div style={{ minHeight:"100vh",
       background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
@@ -92,20 +117,7 @@ export default function GatewaySession() {
 
             {/* Eye — Canvas (rows 1-3, col 2) */}
             <div style={{gridColumn:2,gridRow:"1/4",justifySelf:"stretch",alignSelf:"center"}}>
-              {viz3D ? (
-                <Suspense fallback={<Viz3DFallback />}>
-                  <CymaticsCanvas3D fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying}
-                    currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
-                    zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
-                    onToggle3D={()=>setViz3D(false)} />
-                </Suspense>
-              ) : (
-                <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-                  fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
-                  layers={layers} elapsed={elapsed}
-                  zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
-                  onToggle3D={()=>setViz3D(true)} />
-              )}
+              {vizCanvas}
             </div>
 
             {/* Inner whorl — Volume (col 1, row 1-2, centered on canvas) */}
@@ -197,22 +209,7 @@ export default function GatewaySession() {
               <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>
             </div>
           </div>
-        ) : (
-          viz3D ? (
-            <Suspense fallback={<Viz3DFallback />}>
-              <CymaticsCanvas3D fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying}
-                currentDiffs={currentDiffs} layers={layers} elapsed={elapsed}
-                zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
-                onToggle3D={()=>setViz3D(false)} />
-            </Suspense>
-          ) : (
-            <CymaticsCanvas analyserRef={analyserRef} noiseAnalyserRef={noiseAnalyserRef}
-              fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying} currentDiffs={currentDiffs}
-              layers={layers} elapsed={elapsed}
-              zenMode={zenMode} onToggleZen={()=>setZenMode(z=>!z)}
-              onToggle3D={()=>setViz3D(true)} />
-          )
-        )}
+        ) : vizCanvas}
 
         {/* PhaseBar — mobile only (desktop PhaseBar is inside the grid) */}
         {!desktop && <PhaseBar phases={phases} elapsed={elapsed} totalDuration={totalSec}/>}
