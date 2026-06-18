@@ -17,6 +17,7 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   const analyserRef = useRef(null); const noiseAnalyserRef = useRef(null);
   const fftAnalyserRef = useRef(null); const timerRef = useRef(null);
   const startTimeRef = useRef(null); const rampRef = useRef(null);
+  const disposeTimeoutRef = useRef(null);
   const layersSnap = useRef(layers); const noiseLevelSnap = useRef(noiseLevel);
   useEffect(()=>{layersSnap.current=layers;},[layers]);
   useEffect(()=>{noiseLevelSnap.current=noiseLevel;},[noiseLevel]);
@@ -130,7 +131,8 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   const stopSession = useCallback(() => {
     if (masterGainRef.current) {
       masterGainRef.current.gain.rampTo(0, FADE_TIME);
-      setTimeout(()=>disposeAll(), FADE_TIME*1000+200);
+      if (disposeTimeoutRef.current) clearTimeout(disposeTimeoutRef.current);
+      disposeTimeoutRef.current = setTimeout(()=>{ disposeAll(); disposeTimeoutRef.current = null; }, FADE_TIME*1000+200);
     }
     clearInterval(timerRef.current);
     if (rampRef.current) cancelAnimationFrame(rampRef.current);
@@ -142,6 +144,9 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     // don't keep reporting the previous run's "complete" state during startup
     // (and so a rejected buildAudio() leaves a clean, not stale, state).
     setElapsed(0); setCurrentDiffs(layers.map(l=>l.f_diff_start)); setCompleted(false);
+    // Cancel any pending dispose from a recent stop so its fade-out timeout can't
+    // tear down the new audio graph we are about to build.
+    if (disposeTimeoutRef.current) { clearTimeout(disposeTimeoutRef.current); disposeTimeoutRef.current = null; }
     await buildAudio();
     startTimeRef.current = Date.now(); setIsPlaying(true);
     timerRef.current = setInterval(()=>{
@@ -156,7 +161,8 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   },[globalVol]);
 
   useEffect(()=>()=>{
-    clearInterval(timerRef.current); if(rampRef.current) cancelAnimationFrame(rampRef.current); disposeAll();
+    clearInterval(timerRef.current); if(rampRef.current) cancelAnimationFrame(rampRef.current);
+    if (disposeTimeoutRef.current) clearTimeout(disposeTimeoutRef.current); disposeAll();
   },[disposeAll]);
 
   // Handle mobile app lifecycle (Capacitor)
