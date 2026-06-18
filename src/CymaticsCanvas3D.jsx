@@ -172,8 +172,14 @@ export default function CymaticsCanvas3D({
     const container = containerRef.current;
     if (!container) return;
 
-    const initialWidth = zenMode ? window.innerWidth : 300;
-    const initialHeight = zenMode ? window.innerHeight : 300;
+    const measureSize = () => {
+      if (zenMode) return { w: window.innerWidth, h: window.innerHeight };
+      const s = Math.round(container.clientWidth || 0) || 300;
+      return { w: s, h: s };
+    };
+    const initial = measureSize();
+    const initialWidth = initial.w;
+    const initialHeight = initial.h;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -318,17 +324,24 @@ export default function CymaticsCanvas3D({
     animate();
 
     const handleResize = () => {
-      const newWidth = zenMode ? window.innerWidth : 300;
-      const newHeight = zenMode ? window.innerHeight : 300;
-      renderer.setSize(newWidth, newHeight);
-      camera.aspect = newWidth / newHeight;
+      const { w, h } = measureSize();
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
     };
-    if (zenMode) window.addEventListener("resize", handleResize);
+
+    let resizeObserver = null;
+    if (zenMode) {
+      window.addEventListener("resize", handleResize);
+    } else if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(container);
+    }
 
     return () => {
       cancelAnimationFrame(rafId);
       if (zenMode) window.removeEventListener("resize", handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
       shellMeshes.forEach(m => m.material.dispose());
       planeGeometry.dispose();
       besselTex.dispose();
@@ -364,10 +377,10 @@ export default function CymaticsCanvas3D({
   }
 
   return (
-    <div style={{ position: "relative", margin: "0 auto", maxWidth: 300 }}>
+    <div style={{ position: "relative", margin: "0 auto", width: "100%", maxWidth: 560 }}>
       <div ref={containerRef} aria-label="3D cymatic standing-wave visualizer"
         style={{
-          width: 300, height: 300, borderRadius: 12, overflow: "hidden",
+          width: "100%", aspectRatio: "1", borderRadius: 12, overflow: "hidden",
           border: "1px solid rgba(59,82,139,0.15)", background: "#000004",
         }} />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>

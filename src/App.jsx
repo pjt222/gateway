@@ -54,11 +54,12 @@ export default function GatewaySession() {
     {label:`Layer ${prev.length+1}`,f_base:200,f_diff_start:6.0,f_diff_end:6.0,amp:0.2,mode:"binaural"}]); };
 
   return (
-    <div style={{ ...(desktop?{height:"100vh",overflow:"hidden"}:{minHeight:"100vh"}),
+    <div style={{ minHeight:"100vh",
       background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
       color:"#e2e0f0",fontFamily:"'Instrument Sans','DM Sans',system-ui,sans-serif",
-      padding:"32px 20px",display:"flex",justifyContent:"center" }}>
-      <main style={{ width:"100%",maxWidth:desktop?1200:560,...(desktop?{display:"flex",flexDirection:"column"}:{}) }}>
+      padding:"32px 20px",display:"flex",justifyContent:"center",
+      ...(desktop?{alignItems:"safe center"}:{}) }}>
+      <main style={{ width:"100%",maxWidth:desktop?1100:560,...(desktop?{display:"flex",flexDirection:"column"}:{}) }}>
 
         {/* Header */}
         <div style={{ marginBottom:desktop?10:24,textAlign:"center" }}>
@@ -71,11 +72,12 @@ export default function GatewaySession() {
 
         {/* ── Nautilus spiral: Canvas at eye, controls in φ-chambers ── */}
         {desktop ? (
-          <div style={{display:"grid",gridTemplateColumns:"140px 300px 1fr",gridTemplateRows:"auto auto auto auto",
-            gap:"12px 20px",maxWidth:920,margin:"0 auto"}}>
+          <div style={{display:"grid",gridTemplateColumns:"minmax(120px,150px) clamp(300px, 42vh, 480px) minmax(240px,1fr)",
+            gridTemplateRows:"auto auto auto auto",
+            gap:"12px 24px",maxWidth:1100,margin:"0 auto",width:"100%"}}>
 
             {/* Eye — Canvas (rows 1-3, col 2) */}
-            <div style={{gridColumn:2,gridRow:"1/4",justifySelf:"center"}}>
+            <div style={{gridColumn:2,gridRow:"1/4",justifySelf:"stretch",alignSelf:"center"}}>
               {viz3D ? (
                 <Suspense fallback={<Viz3DFallback />}>
                   <CymaticsCanvas3D fftAnalyserRef={fftAnalyserRef} isPlaying={isPlaying}
@@ -277,8 +279,7 @@ export default function GatewaySession() {
         </div>
 
         {/* Layers + Pink Noise grid */}
-        <div style={{ marginTop:desktop?8:20,display:"flex",flexDirection:"column",gap:8,
-          ...(desktop?{flex:1,minHeight:0}:{}) }}>
+        <div style={{ marginTop:desktop?8:20,display:"flex",flexDirection:"column",gap:8 }}>
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
             <span style={{ fontSize:11,color:"#35b0ab",textTransform:"uppercase",
               letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace" }}>
@@ -291,8 +292,8 @@ export default function GatewaySession() {
               fontFamily:"'JetBrains Mono',monospace",
               opacity:layers.length>=6||isPlaying?0.3:1 }}>+ Add</button>
           </div>
-          <div className={desktop?"controls-scroll":undefined} style={desktop
-            ?{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,flex:1,minHeight:0,overflowY:"auto",alignContent:"start"}
+          <div style={desktop
+            ?{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}
             :{display:"flex",flexDirection:"column",gap:8}}>
             {layers.map((l,i)=>(
               <div key={i}>

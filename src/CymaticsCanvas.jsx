@@ -56,6 +56,7 @@ export default function CymaticsCanvas({
   fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen, onToggle3D,
 }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const animationFrameRef = useRef(null);
   const currentDiffsRef = useRef(currentDiffs);
   const layersRef = useRef(layers);
@@ -107,9 +108,13 @@ export default function CymaticsCanvas({
     if (!canvas) return;
     const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
-    const getCanvasSize = () => zenMode
-      ? { displayWidth: window.innerWidth, displayHeight: window.innerHeight }
-      : { displayWidth: 300, displayHeight: 300 };
+    // Non-zen: fill the parent square (sized by App via clamp()), measured live
+    // via ResizeObserver so the "eye" grows with the layout instead of a fixed 300px.
+    const getCanvasSize = () => {
+      if (zenMode) return { displayWidth: window.innerWidth, displayHeight: window.innerHeight };
+      const measured = Math.round(containerRef.current?.clientWidth || 0) || 300;
+      return { displayWidth: measured, displayHeight: measured };
+    };
 
     const applyCanvasSize = () => {
       const { displayWidth, displayHeight } = getCanvasSize();
@@ -267,11 +272,19 @@ export default function CymaticsCanvas({
       displayWidth = dims.displayWidth;
       displayHeight = dims.displayHeight;
     };
-    if (zenMode) window.addEventListener("resize", handleResize);
+
+    let resizeObserver = null;
+    if (zenMode) {
+      window.addEventListener("resize", handleResize);
+    } else if (containerRef.current && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(containerRef.current);
+    }
 
     return () => {
       cancelAnimationFrame(animationFrameRef.current);
       if (zenMode) window.removeEventListener("resize", handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
     };
   }, [fftAnalyserRef, isPlaying, zenMode, polarTables, palette]);
 
@@ -306,13 +319,14 @@ export default function CymaticsCanvas({
   }
 
   return (
-    <div style={{ position: "relative", margin: "0 auto", maxWidth: 300 }}>
-      <canvas ref={canvasRef} width={300} height={300}
+    <div ref={containerRef} style={{ position: "relative", margin: "0 auto",
+      width: "100%", maxWidth: 560, aspectRatio: "1" }}>
+      <canvas ref={canvasRef}
         aria-label="Cymatic standing-wave visualizer"
         style={{
-          width: "100%", maxWidth: 300, aspectRatio: "1", borderRadius: 12,
+          width: "100%", height: "100%", borderRadius: 12,
           background: "#000004", border: "1px solid rgba(59,82,139,0.15)",
-          display: "block", margin: "0 auto",
+          display: "block",
         }}
         title="Click for zen mode" />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>
