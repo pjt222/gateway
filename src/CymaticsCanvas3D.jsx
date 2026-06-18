@@ -397,9 +397,11 @@ export default function CymaticsCanvas3D({
 
   return (
     <div style={{ position: "relative", margin: "0 auto", width: "100%", maxWidth: 560 }}>
-      <div ref={containerRef} aria-label="3D cymatic standing-wave visualizer — click for zen mode"
+      <div ref={containerRef} aria-label="3D cymatic standing-wave visualizer — activate for zen mode"
         className={isPlaying ? "gw-live" : undefined}
         onClick={onToggleZen}
+        role="button" tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleZen?.(); } }}
         title="Click for zen mode"
         style={{
           width: "100%", aspectRatio: "1", borderRadius: 12, overflow: "hidden",
