@@ -133,7 +133,7 @@ export default function GatewaySession() {
                   <select id="dur-sel" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
                     style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
                       color:"var(--accent)",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
-                      fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
+                      fontFamily:"'JetBrains Mono',monospace",cursor:isPlaying?"not-allowed":"pointer",opacity:isPlaying?0.45:1}}>
                     {[5,10,15,20,30,45,60].map(m=><option key={m} value={m}>{m} min</option>)}
                   </select>
                 </div>
@@ -142,7 +142,7 @@ export default function GatewaySession() {
                   <select id="phase-sel" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
                     style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
                       color:"var(--accent)",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
-                      fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
+                      fontFamily:"'JetBrains Mono',monospace",cursor:isPlaying?"not-allowed":"pointer",opacity:isPlaying?0.45:1}}>
                     {Object.keys(PHASE_TEMPLATES).map(n=><option key={n} value={n}>{n}</option>)}
                   </select>
                 </div>
@@ -209,7 +209,7 @@ export default function GatewaySession() {
                 <select id="dur-sel-m" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
                   style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
                     color:"var(--accent)",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
-                    fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
+                    fontFamily:"'JetBrains Mono',monospace",cursor:isPlaying?"not-allowed":"pointer",opacity:isPlaying?0.45:1}}>
                   {[5,10,15,20,30,45,60].map(m=><option key={m} value={m}>{m} min</option>)}
                 </select>
               </div>
@@ -218,7 +218,7 @@ export default function GatewaySession() {
                 <select id="phase-sel-m" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
                   style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
                     color:"var(--accent)",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
-                    fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
+                    fontFamily:"'JetBrains Mono',monospace",cursor:isPlaying?"not-allowed":"pointer",opacity:isPlaying?0.45:1}}>
                   {Object.keys(PHASE_TEMPLATES).map(n=><option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
@@ -311,7 +311,7 @@ export default function GatewaySession() {
           display:"flex",alignItems:"center",gap:14 }}>
           <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
             <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.85)",
-              boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.3)":"none" }}/>
+              boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.75)":"none" }}/>
             <span style={{ fontSize:desktop?12:13,fontFamily:"'JetBrains Mono',monospace",color:"var(--text-3)",fontWeight:500 }}>
               Pink Noise</span>
           </div>

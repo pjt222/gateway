@@ -102,6 +102,18 @@ button:active:not(:disabled) {
   button:active:not(:disabled) { transform: none; }
 }
 
+/* "Session is live" cue: the visualizer breathes a slow teal glow while playing.
+   Under reduced-motion the animation flattens to a steady glow (still signals
+   live, without motion). */
+.gw-live { animation: gw-livepulse 4.5s ease-in-out infinite; }
+@keyframes gw-livepulse {
+  0%, 100% { box-shadow: 0 0 18px -8px rgba(43, 163, 156, 0.35); }
+  50%      { box-shadow: 0 0 30px -3px rgba(43, 163, 156, 0.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gw-live { animation: none; box-shadow: 0 0 22px -5px rgba(43, 163, 156, 0.5); }
+}
+
 /* Thin, on-theme scrollbar for the now-scrollable page (replaces the
    removed .controls-scroll internal scroller). */
 ::-webkit-scrollbar { width: 8px; height: 8px; }

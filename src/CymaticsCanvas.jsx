@@ -340,11 +340,13 @@ export default function CymaticsCanvas({
     <div ref={containerRef} style={{ position: "relative", margin: "0 auto",
       width: "100%", maxWidth: 560, aspectRatio: "1" }}>
       <canvas ref={canvasRef}
-        aria-label="Cymatic standing-wave visualizer"
+        className={isPlaying ? "gw-live" : undefined}
+        onClick={onToggleZen}
+        aria-label="Cymatic standing-wave visualizer — click for zen mode"
         style={{
           width: "100%", height: "100%", borderRadius: 12,
-          background: "#000004", border: "1px solid rgba(59,82,139,0.15)",
-          display: "block",
+          background: "#000004", border: "1px solid var(--border-2)",
+          display: "block", cursor: "pointer",
         }}
         title="Click for zen mode" />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>
