@@ -47,11 +47,11 @@ export function TimerDisplay({ elapsed, duration }) {
         strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C*(1-progress)}
         transform="rotate(-90 65 65)" style={{transition:"stroke-dashoffset 1s linear"}}/>
       <defs><linearGradient id="tG" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#3B528B"/><stop offset="100%" stopColor="#440154"/>
+        <stop offset="0%" stopColor="#3B528B"/><stop offset="100%" stopColor="var(--purple-bin)"/>
       </linearGradient></defs>
       <text x="65" y="62" textAnchor="middle" dominantBaseline="middle" fill="#e2e0f0"
         fontSize="20" fontFamily="'JetBrains Mono','SF Mono',monospace" fontWeight="300">{fmt(elapsed)}</text>
-      <text x="65" y="82" textAnchor="middle" fill="#35b0ab"
+      <text x="65" y="82" textAnchor="middle" fill="var(--teal-label)"
         fontSize="10" fontFamily="'JetBrains Mono',monospace">/ {fmt(duration)}</text>
     </svg>
   );
@@ -78,7 +78,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
           <div style={{ width:8,height:8,borderRadius:"50%",background:bc,
             boxShadow:isPlaying?`0 0 8px ${bc}`:"none" }}/>
           <input type="text" value={layer.label} maxLength={40} onChange={(e)=>onChange({...layer,label:e.target.value})}
-            style={{ background:"transparent",border:"none",borderBottom:"1px solid rgba(59,82,139,0.2)",color:"#d4d0ec",fontSize:compact?12:13,
+            style={{ background:"transparent",border:"none",borderBottom:"1px solid rgba(59,82,139,0.2)",color:"var(--text-3)",fontSize:compact?12:13,
               fontFamily:"'JetBrains Mono',monospace",fontWeight:500,width:compact?100:140 }}/>
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:compact?4:6 }}>
@@ -128,7 +128,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
       </div>
       {hasRamp && <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
         <div/>
-        <div><span style={sLabel}>Beat Δf End <span style={{color:"#21908C"}}>↘</span></span>
+        <div><span style={sLabel}>Beat Δf End <span style={{color:"var(--teal-accent)"}}>↘</span></span>
           <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_end}
             aria-label={`${layer.label} beat frequency end`}
             onChange={(e)=>onChange({...layer,f_diff_end:+e.target.value})} style={sSlider}/>

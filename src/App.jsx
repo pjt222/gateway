@@ -9,7 +9,7 @@ const CymaticsCanvas3D = lazy(() => import("./CymaticsCanvas3D"));
 
 const Viz3DFallback = () => (
   <div style={{ width: 300, height: 300, borderRadius: 12, background: "#000004",
-    border: "1px solid rgba(59,82,139,0.15)", display: "flex", alignItems: "center",
+    border: "1px solid var(--border-2)", display: "flex", alignItems: "center",
     justifyContent: "center", color: "rgba(33,144,140,0.5)",
     fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: "0.1em" }}>
     Loading 3D…
@@ -55,7 +55,7 @@ export default function GatewaySession() {
   return (
     <div style={{ minHeight:"100vh",
       background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
-      color:"#e2e0f0",fontFamily:"'Instrument Sans','DM Sans',system-ui,sans-serif",
+      color:"var(--text-1)",fontFamily:"'Instrument Sans','DM Sans',system-ui,sans-serif",
       padding:desktop?"24px 20px":"32px 20px",display:"flex",justifyContent:"center",
       ...(desktop?{alignItems:"safe center"}:{}) }}>
       <main style={{ width:"100%",maxWidth:desktop?1100:560,...(desktop?{display:"flex",flexDirection:"column"}:{}) }}>
@@ -63,7 +63,7 @@ export default function GatewaySession() {
         {/* Header */}
         <div style={{ marginBottom:desktop?10:24,textAlign:"center" }}>
           <h1 style={{ fontSize:15,fontWeight:400,letterSpacing:"0.35em",textTransform:"uppercase",
-            color:"#35b0ab",margin:0 }}>Gateway Session</h1>
+            color:"var(--teal-label)",margin:0 }}>Gateway Session</h1>
           <p style={{ fontSize:11,color:"rgba(53,176,171,0.85)",marginTop:6,
             fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.05em" }}>
             Binaural &middot; Isochronal &middot; Phase Scripting &middot; Stereo Headphones Required</p>
@@ -95,7 +95,7 @@ export default function GatewaySession() {
 
             {/* Inner whorl — Volume (col 1, row 1-2, centered on canvas) */}
             <div style={{gridColumn:1,gridRow:"1/3",alignSelf:"center",
-              background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
+              background:"var(--surface-dim)",border:"1px solid var(--border-1)",
               borderRadius:10,padding:"8px 12px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -104,7 +104,7 @@ export default function GatewaySession() {
                     {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
                     {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
                   </svg>
-                  <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"#5DC863",fontWeight:500}}>Vol</span>
+                  <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"var(--accent)",fontWeight:500}}>Vol</span>
                 </div>
                 <span style={sVal}>{globalVol}%</span>
               </div>
@@ -121,9 +121,9 @@ export default function GatewaySession() {
             {/* Outer spiral — Begin + selects (col 3, row 1) */}
             <div style={{gridColumn:3,gridRow:1,display:"flex",flexDirection:"column",gap:8,alignSelf:"center"}}>
               <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
-                background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
-                border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
-                color:isPlaying?"#fca5a5":"#5DC863",borderRadius:10,padding:"10px 28px",fontSize:13,
+                background:isPlaying?"rgba(239,68,68,0.15)":"var(--border-2)",
+                border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"var(--border-3)"}`,
+                color:isPlaying?"#fca5a5":"var(--accent)",borderRadius:10,padding:"10px 28px",fontSize:13,
                 fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
                 letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s" }}>
                 {isPlaying?"◼ Stop":"▶ Begin"}</button>
@@ -131,8 +131,8 @@ export default function GatewaySession() {
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <label htmlFor="dur-sel" style={{...sLabel,marginBottom:0}}>Duration</label>
                   <select id="dur-sel" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
-                    style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
-                      color:"#5DC863",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
+                    style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
+                      color:"var(--accent)",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
                       fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
                     {[5,10,15,20,30,45,60].map(m=><option key={m} value={m}>{m} min</option>)}
                   </select>
@@ -140,8 +140,8 @@ export default function GatewaySession() {
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <label htmlFor="phase-sel" style={{...sLabel,marginBottom:0}}>Phases</label>
                   <select id="phase-sel" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
-                    style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
-                      color:"#5DC863",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
+                    style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
+                      color:"var(--accent)",borderRadius:6,padding:"8px 10px",fontSize:12,minHeight:36,
                       fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
                     {Object.keys(PHASE_TEMPLATES).map(n=><option key={n} value={n}>{n}</option>)}
                   </select>
@@ -155,15 +155,15 @@ export default function GatewaySession() {
                 {Object.keys(PRESETS).map(name=>(
                   <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
                     aria-pressed={preset===name} style={{
-                    background:preset===name?"rgba(59,82,139,0.2)":"rgba(11,9,36,0.5)",
-                    border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"rgba(59,82,139,0.1)"}`,
-                    color:preset===name?"#5DC863":"rgba(200,190,230,0.9)",borderRadius:8,padding:"6px 12px",
+                    background:preset===name?"rgba(59,82,139,0.2)":"var(--surface-dim)",
+                    border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"var(--border-1)"}`,
+                    color:preset===name?"var(--accent)":"rgba(200,190,230,0.9)",borderRadius:8,padding:"6px 12px",
                     fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:32,
                     cursor:isPlaying?"not-allowed":"pointer",transition:"all 0.2s",
                     opacity:isPlaying?0.5:1 }}>{name}</button>
                 ))}
               </div>
-              {preset && <p style={{fontSize:11,color:"#35b0ab",fontStyle:"italic",margin:0}}>
+              {preset && <p style={{fontSize:11,color:"var(--teal-label)",fontStyle:"italic",margin:0}}>
                 {PRESETS[preset]?.description}</p>}
             </div>
 
@@ -198,17 +198,17 @@ export default function GatewaySession() {
             <TimerDisplay elapsed={elapsed} duration={totalSec}/>
             <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",justifyContent:"center"}}>
               <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
-                background:isPlaying?"rgba(239,68,68,0.15)":"rgba(59,82,139,0.15)",
-                border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"rgba(59,82,139,0.3)"}`,
-                color:isPlaying?"#fca5a5":"#5DC863",borderRadius:10,padding:"10px 28px",fontSize:13,
+                background:isPlaying?"rgba(239,68,68,0.15)":"var(--border-2)",
+                border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"var(--border-3)"}`,
+                color:isPlaying?"#fca5a5":"var(--accent)",borderRadius:10,padding:"10px 28px",fontSize:13,
                 fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
                 letterSpacing:"0.1em",textTransform:"uppercase",transition:"all 0.3s" }}>
                 {isPlaying?"◼ Stop":"▶ Begin"}</button>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 <label htmlFor="dur-sel-m" style={{...sLabel,marginBottom:0}}>Duration</label>
                 <select id="dur-sel-m" value={duration} onChange={e=>setDuration(+e.target.value)} disabled={isPlaying}
-                  style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
-                    color:"#5DC863",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
+                  style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
+                    color:"var(--accent)",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
                     fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
                   {[5,10,15,20,30,45,60].map(m=><option key={m} value={m}>{m} min</option>)}
                 </select>
@@ -216,8 +216,8 @@ export default function GatewaySession() {
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 <label htmlFor="phase-sel-m" style={{...sLabel,marginBottom:0}}>Phases</label>
                 <select id="phase-sel-m" value={phaseName} onChange={e=>setPhaseName(e.target.value)} disabled={isPlaying}
-                  style={{background:"rgba(11,9,36,0.8)",border:"1px solid rgba(59,82,139,0.15)",
-                    color:"#5DC863",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
+                  style={{background:"rgba(11,9,36,0.8)",border:"1px solid var(--border-2)",
+                    color:"var(--accent)",borderRadius:6,padding:"10px 10px",fontSize:12,minHeight:44,
                     fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>
                   {Object.keys(PHASE_TEMPLATES).map(n=><option key={n} value={n}>{n}</option>)}
                 </select>
@@ -228,7 +228,7 @@ export default function GatewaySession() {
 
         {/* ── Volume + Presets stacked on mobile ── */}
         {!desktop && <>
-          <div style={{ marginTop:20,background:"rgba(11,9,36,0.5)",border:"1px solid rgba(59,82,139,0.1)",
+          <div style={{ marginTop:20,background:"var(--surface-dim)",border:"1px solid var(--border-1)",
             borderRadius:10,padding:"10px 14px" }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
               <div style={{ display:"flex",alignItems:"center",gap:8 }}>
@@ -237,7 +237,7 @@ export default function GatewaySession() {
                   {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
                   {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
                 </svg>
-                <span style={{ fontSize:12,fontFamily:"'JetBrains Mono',monospace",color:"#5DC863",fontWeight:500 }}>
+                <span style={{ fontSize:12,fontFamily:"'JetBrains Mono',monospace",color:"var(--accent)",fontWeight:500 }}>
                   Master Volume</span>
               </div>
               <span style={sVal}>{globalVol}%</span>
@@ -251,15 +251,15 @@ export default function GatewaySession() {
               {Object.keys(PRESETS).map(name=>(
                 <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
                   aria-pressed={preset===name} style={{
-                  background:preset===name?"rgba(59,82,139,0.2)":"rgba(11,9,36,0.5)",
-                  border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"rgba(59,82,139,0.1)"}`,
-                  color:preset===name?"#5DC863":"rgba(200,190,230,0.9)",borderRadius:8,padding:"10px 16px",
+                  background:preset===name?"rgba(59,82,139,0.2)":"var(--surface-dim)",
+                  border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"var(--border-1)"}`,
+                  color:preset===name?"var(--accent)":"rgba(200,190,230,0.9)",borderRadius:8,padding:"10px 16px",
                   fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:44,
                   cursor:isPlaying?"not-allowed":"pointer",transition:"all 0.2s",
                   opacity:isPlaying?0.5:1 }}>{name}</button>
               ))}
             </div>
-            {preset && <p style={{ textAlign:"center",fontSize:11,color:"#35b0ab",
+            {preset && <p style={{ textAlign:"center",fontSize:11,color:"var(--teal-label)",
               marginTop:6,fontStyle:"italic" }}>{PRESETS[preset]?.description}</p>}
           </div>
         </>}
@@ -280,12 +280,12 @@ export default function GatewaySession() {
         {/* Layers + Pink Noise grid */}
         <div style={{ marginTop:desktop?8:20,display:"flex",flexDirection:"column",gap:8 }}>
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-            <span style={{ fontSize:11,color:"#35b0ab",textTransform:"uppercase",
+            <span style={{ fontSize:11,color:"var(--teal-label)",textTransform:"uppercase",
               letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace" }}>
               Entrainment Layers ({layers.length})</span>
             <button onClick={addLayer} disabled={layers.length>=6||isPlaying} style={{
               background:"transparent",border:"1px solid rgba(59,82,139,0.2)",
-              color:"#35b0ab",borderRadius:6,padding:desktop?"4px 10px":"8px 14px",fontSize:11,
+              color:"var(--teal-label)",borderRadius:6,padding:desktop?"4px 10px":"8px 14px",fontSize:11,
               minHeight:desktop?32:44,
               cursor:layers.length>=6||isPlaying?"not-allowed":"pointer",
               fontFamily:"'JetBrains Mono',monospace",
@@ -305,14 +305,14 @@ export default function GatewaySession() {
         </div>
 
         {/* Pink Noise — full-width foundation beneath the entrainment layers (both layouts) */}
-        <div style={{ marginTop:desktop?8:12,background:"rgba(11,9,36,0.7)",
-          border:"1px solid rgba(59,82,139,0.1)",borderRadius:10,
+        <div style={{ marginTop:desktop?8:12,background:"var(--surface)",
+          border:"1px solid var(--border-1)",borderRadius:10,
           padding:desktop?"10px 14px":"12px 14px",
           display:"flex",alignItems:"center",gap:14 }}>
           <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
             <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.6)",
               boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.3)":"none" }}/>
-            <span style={{ fontSize:desktop?12:13,fontFamily:"'JetBrains Mono',monospace",color:"#d4d0ec",fontWeight:500 }}>
+            <span style={{ fontSize:desktop?12:13,fontFamily:"'JetBrains Mono',monospace",color:"var(--text-3)",fontWeight:500 }}>
               Pink Noise</span>
           </div>
           <input type="range" min={0} max={50} step={1} value={Math.round(noiseLevel*100)}
