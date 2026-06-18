@@ -333,6 +333,9 @@ export default function CymaticsCanvas3D({
       shellMeshes.forEach(m => m.material.dispose());
       planeGeometry.dispose();
       besselTex.dispose();
+      // forceContextLoss before dispose so each zen toggle releases its GL context
+      // deterministically rather than relying on GC (browsers cap live contexts ~16).
+      renderer.forceContextLoss();
       renderer.dispose();
       const dom = renderer.domElement;
       if (dom.parentNode) dom.parentNode.removeChild(dom);

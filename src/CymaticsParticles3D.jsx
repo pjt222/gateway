@@ -198,7 +198,9 @@ export default function CymaticsParticles3D({
     const initial = measureSize();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    // antialias off: grains are soft round sprites (smoothstep + discard), so MSAA
+    // over the fullscreen-zen surface buys nothing visually but costs real fill rate.
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
     renderer.setPixelRatio(dpr);
     renderer.setSize(initial.w, initial.h);
     renderer.setClearColor(0x000004, 1);
@@ -246,12 +248,19 @@ export default function CymaticsParticles3D({
     computeUniforms.uBeatPulse = { value: 0.4 };
 
     const initError = gpu.init();
-    let gpuOk = true;
     if (initError !== null) {
-      // No float render-target support (older mobile WebView): bail gracefully
-      // rather than throwing — the disc stays black and the shell mode remains.
+      // No float render-target support (older mobile WebView): hand back to the
+      // nodal-shell viz (which needs no GPGPU) instead of orbiting an empty black
+      // disc and draining battery on the weakest device. Tear down what we built.
       console.error("[CymaticsParticles3D] GPGPU init failed:", initError);
-      gpuOk = false;
+      besselTex.dispose();
+      gpu.dispose();
+      renderer.forceContextLoss();
+      renderer.dispose();
+      const failDom = renderer.domElement;
+      if (failDom.parentNode) failDom.parentNode.removeChild(failDom);
+      onSet3DMode?.("shells");
+      return undefined;
     }
 
     // ── Point cloud sampling the position texture ─────────────────────────
@@ -294,7 +303,7 @@ export default function CymaticsParticles3D({
     });
     const points = new THREE.Points(geometry, pointsMaterial);
     points.frustumCulled = false;
-    if (gpuOk) scene.add(points);
+    scene.add(points);
 
     let cameraAngle = Math.PI * 0.25;
     let lastFrameTime = performance.now() / 1000;
@@ -320,7 +329,7 @@ export default function CymaticsParticles3D({
       );
       camera.lookAt(0, 0, 0);
 
-      if (gpuOk) {
+      {
         // ── Feed the standing-wave field (stable spatial nodes) + beat pulse ──
         const playing = isPlayingRef.current && playStartRef.current !== null;
         const tSeconds = playing ? nowSeconds - playStartRef.current : nowSeconds;
@@ -450,11 +459,14 @@ export default function CymaticsParticles3D({
       pointsMaterial.dispose();
       besselTex.dispose();
       gpu.dispose();
+      // forceContextLoss before dispose so the GL context is released deterministically
+      // — repeated zen toggles each build a fresh context and browsers cap them (~16).
+      renderer.forceContextLoss();
       renderer.dispose();
       const dom = renderer.domElement;
       if (dom.parentNode) dom.parentNode.removeChild(dom);
     };
-  }, [zenMode, fftAnalyserRef]);
+  }, [zenMode, fftAnalyserRef, onSet3DMode]);
 
   useEffect(() => {
     if (!zenMode) return;
