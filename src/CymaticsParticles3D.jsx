@@ -11,6 +11,21 @@ import { watchMedia } from "./utils";
 
 const BAND_TO_N = { delta: 1, theta: 2, alpha: 3, beta: 4, gamma: 5 };
 
+// Settle speed knob. uK (drift) and uDamp (settling) are derived from one number S
+// so they scale together and the damping ratio stays constant — i.e. faster settle
+// without overshoot/flicker. Settle time ≈ 2500ms / S (S=1 ≈ 2.5s calm sand,
+// S=2.5 ≈ 1s, S=10 ≈ 250ms; above ~25 it hits the 60fps frame floor and gets noisy).
+// Live-tunable for experimentation: set `window.__sandSpeed = 5` in the console.
+const SAND_SPEED_DEFAULT = 2.5;
+const BASE_K = 0.28;          // drift strength at S=1
+const BASE_DAMP = 0.9;        // per-(1/60)s velocity retention at S=1
+const BASE_JITTER = 0.14;     // hop magnitude (fixed; spreads grains along the node)
+const BASE_NODE_WIDTH = 0.12; // |u| glow band at S=1 (widens with S so fast/thin lines stay lit)
+function sandSpeed() {
+  const s = typeof window !== "undefined" && +window.__sandSpeed;
+  return Math.max(0.5, Math.min(25, s || SAND_SPEED_DEFAULT));
+}
+
 // Angular mode n (number of nodal diameters) and radial mode m (nodal circles),
 // mapped from the layer's band and carrier — identical to the nodal-shell viz so
 // the two 3D modes describe the same standing-wave field.
@@ -112,7 +127,20 @@ void main() {
 
   vel += acc * uDt;
   vel *= pow(uDamp, uDt * 60.0); // frame-rate-independent: same decay/sec at 30 or 60fps
+  // Cap speed so the explicit Euler step stays stable under strong drift (snappy
+  // settle settings): without this, a high uK can diverge and NaN the HalfFloat texture.
+  float sp = length(vel);
+  if (sp > 4.0) vel *= 4.0 / sp;
   pos += vel * uDt;
+
+  // Respawn any grain that blew up (NaN) or left the unit square at a random disc
+  // point — self-heals the field instantly if a setting briefly went unstable.
+  if (!(pos.x >= -1.0 && pos.x <= 1.0 && pos.y >= -1.0 && pos.y <= 1.0)) {
+    float ang = hash(uv * 17.3 + uTime) * 6.2831853;
+    float rad = sqrt(hash(uv * 53.9 - uTime));
+    pos = vec2(cos(ang), sin(ang)) * rad;
+    vel = vec2(0.0);
+  }
 
   // The clamped plate's rim (r = 1) is itself a nodal line; keep grains on the disc.
   float rr = length(pos);
@@ -142,7 +170,9 @@ void main() {
   // grains still drifting through the antinodes stay small and dim.
   float glow = 1.0 - smoothstep(0.0, uNodeWidth, abs(cymaticField(p)));
   vGlow = glow;
-  gl_PointSize = uSize * (0.45 + 0.85 * glow) * uDpr / max(0.1, -mv.z);
+  // Floor at ~1px so grains never fall below a pixel and get culled — that was
+  // making the small (non-zen) canvas drop to "a few dots" at some sizes.
+  gl_PointSize = max(1.0, uSize * (0.45 + 0.85 * glow) * uDpr / max(0.1, -mv.z));
 }
 `;
 
@@ -242,9 +272,9 @@ export default function CymaticsParticles3D({
     computeUniforms.fieldNorm = sharedFieldNorm;
     computeUniforms.uDt = { value: 1 / 60 };
     computeUniforms.uTime = { value: 0 };
-    computeUniforms.uK = { value: 0.28 };
-    computeUniforms.uJitter = { value: 0.14 };
-    computeUniforms.uDamp = { value: 0.9 };
+    computeUniforms.uK = { value: BASE_K * SAND_SPEED_DEFAULT * SAND_SPEED_DEFAULT };
+    computeUniforms.uJitter = { value: BASE_JITTER };
+    computeUniforms.uDamp = { value: Math.pow(BASE_DAMP, SAND_SPEED_DEFAULT) };
     computeUniforms.uBeatPulse = { value: 0.4 };
 
     const initError = gpu.init();
@@ -393,6 +423,14 @@ export default function CymaticsParticles3D({
 
         computeUniforms.uTime.value = nowSeconds;
         computeUniforms.uDt.value = dt;
+        // Settle speed: drift and damping scale together (constant damping ratio →
+        // snappier without overshoot). Faster settling concentrates grains on a thinner
+        // node curve, so widen the glow band with S to keep the line visible/dense.
+        // Read live so window.__sandSpeed tunes it on the fly.
+        const S = sandSpeed();
+        computeUniforms.uK.value = BASE_K * S * S;
+        computeUniforms.uDamp.value = Math.pow(BASE_DAMP, S);
+        pointsMaterial.uniforms.uNodeWidth.value = BASE_NODE_WIDTH * Math.pow(S, 0.5);
         // Beat envelope drives jitter only (agitation), never the spatial field —
         // so a beat is felt as the sand stirring, not the whole disc flashing.
         // Under reduced-motion the jitter is killed entirely (pulse 0): with the
