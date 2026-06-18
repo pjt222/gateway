@@ -287,16 +287,20 @@ export default function CymaticsCanvas({
     };
 
     let resizeObserver = null;
-    if (zenMode) {
-      window.addEventListener("resize", handleResize);
-    } else if (containerRef.current && typeof ResizeObserver !== "undefined") {
+    let windowResizeBound = false;
+    if (!zenMode && containerRef.current && typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(handleResize);
       resizeObserver.observe(containerRef.current);
+    } else {
+      // Zen mode, or no ResizeObserver support: recompute on window resize so
+      // the canvas backing store still tracks viewport changes.
+      window.addEventListener("resize", handleResize);
+      windowResizeBound = true;
     }
 
     return () => {
       cancelAnimationFrame(animationFrameRef.current);
-      if (zenMode) window.removeEventListener("resize", handleResize);
+      if (windowResizeBound) window.removeEventListener("resize", handleResize);
       if (resizeObserver) resizeObserver.disconnect();
     };
   }, [fftAnalyserRef, isPlaying, zenMode, polarTables, palette]);

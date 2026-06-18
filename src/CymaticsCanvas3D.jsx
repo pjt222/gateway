@@ -343,16 +343,20 @@ export default function CymaticsCanvas3D({
     };
 
     let resizeObserver = null;
-    if (zenMode) {
-      window.addEventListener("resize", handleResize);
-    } else if (typeof ResizeObserver !== "undefined") {
+    let windowResizeBound = false;
+    if (!zenMode && typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(handleResize);
       resizeObserver.observe(container);
+    } else {
+      // Zen mode, or no ResizeObserver support: recompute on window resize so
+      // the renderer still tracks viewport changes.
+      window.addEventListener("resize", handleResize);
+      windowResizeBound = true;
     }
 
     return () => {
       cancelAnimationFrame(rafId);
-      if (zenMode) window.removeEventListener("resize", handleResize);
+      if (windowResizeBound) window.removeEventListener("resize", handleResize);
       if (resizeObserver) resizeObserver.disconnect();
       shellMeshes.forEach(m => m.material.dispose());
       planeGeometry.dispose();
