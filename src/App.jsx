@@ -29,9 +29,12 @@ export default function GatewaySession() {
   const [phaseName, setPhaseName] = useState("Classic Gateway");
   const [zenMode, setZenMode] = useState(false);
   const [viz3D, setViz3D] = useState(false);
-  const [desktop, setDesktop] = useState(() => window.innerHeight >= 768 && window.innerWidth >= 768);
+  // Width chooses the form (chambers vs stack); height only needs a low floor so the
+  // common short-but-wide laptop (1366x768 -> ~660px viewport) gets the desktop layout
+  // instead of being dumped into the tall mobile scroll. The eye already shrinks via vh.
+  const [desktop, setDesktop] = useState(() => window.innerWidth >= 900 && window.innerHeight >= 600);
   useEffect(() => {
-    const mq = window.matchMedia('(min-height: 768px) and (min-width: 768px)');
+    const mq = window.matchMedia('(min-width: 900px) and (min-height: 600px)');
     const h = (e) => setDesktop(e.matches);
     mq.addEventListener('change', h);
     return () => mq.removeEventListener('change', h);
@@ -57,7 +60,7 @@ export default function GatewaySession() {
     <div style={{ minHeight:"100vh",
       background:"linear-gradient(165deg,#000004 0%,#0B0924 40%,#140E36 100%)",
       color:"#e2e0f0",fontFamily:"'Instrument Sans','DM Sans',system-ui,sans-serif",
-      padding:"32px 20px",display:"flex",justifyContent:"center",
+      padding:desktop?"24px 20px":"32px 20px",display:"flex",justifyContent:"center",
       ...(desktop?{alignItems:"safe center"}:{}) }}>
       <main style={{ width:"100%",maxWidth:desktop?1100:560,...(desktop?{display:"flex",flexDirection:"column"}:{}) }}>
 
@@ -72,7 +75,7 @@ export default function GatewaySession() {
 
         {/* ── Nautilus spiral: Canvas at eye, controls in φ-chambers ── */}
         {desktop ? (
-          <div style={{display:"grid",gridTemplateColumns:"minmax(120px,150px) clamp(300px, 42vh, 480px) minmax(240px,1fr)",
+          <div style={{display:"grid",gridTemplateColumns:"minmax(132px,150px) clamp(300px, 42vh, 480px) minmax(240px,1fr)",
             gridTemplateRows:"auto auto auto auto",
             gap:"12px 24px",maxWidth:1100,margin:"0 auto",width:"100%"}}>
 
