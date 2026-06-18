@@ -82,7 +82,7 @@ uniform float uDt;
 uniform float uTime;
 uniform float uK;        // drift strength toward nodes
 uniform float uJitter;   // random hop magnitude
-uniform float uDamp;     // velocity retention per step (< 1 settles)
+uniform float uDamp;     // velocity retention per 1/60s (< 1 settles); rate-corrected below
 uniform float uBeatPulse;// vibration intensity from the binaural beat envelope
 ${FIELD_FUNCS}
 
@@ -110,7 +110,7 @@ void main() {
   acc += jit * uJitter * uBeatPulse;            // beat felt as agitation, not a flash
 
   vel += acc * uDt;
-  vel *= uDamp;
+  vel *= pow(uDamp, uDt * 60.0); // frame-rate-independent: same decay/sec at 30 or 60fps
   pos += vel * uDt;
 
   // The clamped plate's rim (r = 1) is itself a nodal line; keep grains on the disc.
@@ -440,8 +440,11 @@ export default function CymaticsParticles3D({
         computeUniforms.uDt.value = dt;
         // Beat envelope drives jitter only (agitation), never the spatial field —
         // so a beat is felt as the sand stirring, not the whole disc flashing.
+        // Under reduced-motion the jitter is killed entirely (pulse 0): with the
+        // field frozen, grains drift onto the nodes once and then hold still,
+        // matching the sibling visualizers' static pose instead of churning forever.
         computeUniforms.uBeatPulse.value = reduced
-          ? 0.12
+          ? 0.0
           : (playing ? 0.3 + 0.7 * (pulseAccum / Math.max(1, layerCount)) : 0.35);
         posVar.material.uniformsNeedUpdate = true;
         pointsMaterial.uniformsNeedUpdate = true;
