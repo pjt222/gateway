@@ -7,12 +7,17 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   const [isPlaying, setIsPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [currentDiffs, setCurrentDiffs] = useState([]);
+  // True only when the session ran to its natural end (timer reached duration),
+  // so consumers can distinguish "complete" from a manual stop without inferring
+  // it from elapsed vs the (mutable) duration afterwards.
+  const [completed, setCompleted] = useState(false);
 
   const oscRefs = useRef([]); const noiseRef = useRef(null); const noiseGainRef = useRef(null);
   const masterGainRef = useRef(null); const globalGainRef = useRef(null);
   const analyserRef = useRef(null); const noiseAnalyserRef = useRef(null);
   const fftAnalyserRef = useRef(null); const timerRef = useRef(null);
   const startTimeRef = useRef(null); const rampRef = useRef(null);
+  const disposeTimeoutRef = useRef(null);
   const layersSnap = useRef(layers); const noiseLevelSnap = useRef(noiseLevel);
   useEffect(()=>{layersSnap.current=layers;},[layers]);
   useEffect(()=>{noiseLevelSnap.current=noiseLevel;},[noiseLevel]);
@@ -126,7 +131,8 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   const stopSession = useCallback(() => {
     if (masterGainRef.current) {
       masterGainRef.current.gain.rampTo(0, FADE_TIME);
-      setTimeout(()=>disposeAll(), FADE_TIME*1000+200);
+      if (disposeTimeoutRef.current) clearTimeout(disposeTimeoutRef.current);
+      disposeTimeoutRef.current = setTimeout(()=>{ disposeAll(); disposeTimeoutRef.current = null; }, FADE_TIME*1000+200);
     }
     clearInterval(timerRef.current);
     if (rampRef.current) cancelAnimationFrame(rampRef.current);
@@ -134,12 +140,18 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   }, [disposeAll]);
 
   const startSession = useCallback(async () => {
+    // Reset session state before the async audio build so the live region / UI
+    // don't keep reporting the previous run's "complete" state during startup
+    // (and so a rejected buildAudio() leaves a clean, not stale, state).
+    setElapsed(0); setCurrentDiffs(layers.map(l=>l.f_diff_start)); setCompleted(false);
+    // Cancel any pending dispose from a recent stop so its fade-out timeout can't
+    // tear down the new audio graph we are about to build.
+    if (disposeTimeoutRef.current) { clearTimeout(disposeTimeoutRef.current); disposeTimeoutRef.current = null; }
     await buildAudio();
-    setElapsed(0); setCurrentDiffs(layers.map(l=>l.f_diff_start));
     startTimeRef.current = Date.now(); setIsPlaying(true);
     timerRef.current = setInterval(()=>{
       const s=(Date.now()-startTimeRef.current)/1000; setElapsed(s);
-      if (s >= duration*60) stopSession();
+      if (s >= duration*60) { setCompleted(true); stopSession(); }
     }, 250);
     startRampLoop();
   }, [buildAudio, duration, layers, startRampLoop, stopSession]);
@@ -149,7 +161,8 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
   },[globalVol]);
 
   useEffect(()=>()=>{
-    clearInterval(timerRef.current); if(rampRef.current) cancelAnimationFrame(rampRef.current); disposeAll();
+    clearInterval(timerRef.current); if(rampRef.current) cancelAnimationFrame(rampRef.current);
+    if (disposeTimeoutRef.current) clearTimeout(disposeTimeoutRef.current); disposeAll();
   },[disposeAll]);
 
   // Handle mobile app lifecycle (Capacitor)
@@ -165,5 +178,5 @@ export function useAudioEngine({ layers, noiseLevel, globalVol, duration, phaseN
     return () => window.removeEventListener('capacitor-app-state', handler);
   }, [isPlaying, startRampLoop]);
 
-  return { isPlaying, elapsed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession };
+  return { isPlaying, elapsed, completed, currentDiffs, analyserRef, noiseAnalyserRef, fftAnalyserRef, startSession, stopSession };
 }

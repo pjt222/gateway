@@ -3,6 +3,7 @@ import * as Tone from "tone";
 import {
   BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_TS, BESSEL_X_MAX,
 } from "./bessel";
+import { watchMedia } from "./utils";
 
 const GRID = 200;
 const BAND_TO_N = { delta: 1, theta: 2, alpha: 3, beta: 4, gamma: 5 };
@@ -56,11 +57,17 @@ export default function CymaticsCanvas({
   fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen, onToggle3D,
 }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const animationFrameRef = useRef(null);
   const currentDiffsRef = useRef(currentDiffs);
   const layersRef = useRef(layers);
   const playStartTimeRef = useRef(null);
   const zenContainerRef = useRef(null);
+  const reducedMotionRef = useRef(
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
+  );
 
   const palette = useMemo(() => buildPalette(), []);
 
@@ -101,15 +108,20 @@ export default function CymaticsCanvas({
     if (isPlaying) playStartTimeRef.current = performance.now() / 1000;
     else playStartTimeRef.current = null;
   }, [isPlaying]);
+  useEffect(() => watchMedia("(prefers-reduced-motion: reduce)", (m) => { reducedMotionRef.current = m; }), []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
-    const getCanvasSize = () => zenMode
-      ? { displayWidth: window.innerWidth, displayHeight: window.innerHeight }
-      : { displayWidth: 300, displayHeight: 300 };
+    // Non-zen: fill the parent square (sized by App via clamp()), measured live
+    // via ResizeObserver so the "eye" grows with the layout instead of a fixed 300px.
+    const getCanvasSize = () => {
+      if (zenMode) return { displayWidth: window.innerWidth, displayHeight: window.innerHeight };
+      const measured = Math.round(containerRef.current?.clientWidth || 0) || 300;
+      return { displayWidth: measured, displayHeight: measured };
+    };
 
     const applyCanvasSize = () => {
       const { displayWidth, displayHeight } = getCanvasSize();
@@ -140,6 +152,7 @@ export default function CymaticsCanvas({
       const beatFrequencies = currentDiffsRef.current;
       const layerCount = sessionLayers.length;
       const playing = isPlaying && playStartTimeRef.current !== null;
+      const reduced = reducedMotionRef.current;
       const elapsedSeconds = playing
         ? performance.now() / 1000 - playStartTimeRef.current
         : performance.now() / 1000;
@@ -183,19 +196,24 @@ export default function CymaticsCanvas({
             energy = 0.3;
           }
         } else {
-          // Idle-state breathing so canvas never goes blank.
-          energy = 0.25 + 0.2 * Math.sin(elapsedSeconds * 0.4 + l * 0.7);
+          // Idle-state breathing so canvas never goes blank (frozen under reduced-motion).
+          energy = reduced ? 0.45 : 0.25 + 0.2 * Math.sin(elapsedSeconds * 0.4 + l * 0.7);
         }
 
         // Slow visual envelope at beat frequency, scaled down to avoid strobing
         // at gamma rates (40+ Hz).
         const visualBeatScale = 0.25;
-        const slowEnvelope = Math.cos(2 * Math.PI * beatHz * visualBeatScale * elapsedSeconds);
+        // Reduced-motion: freeze the time-driven beat oscillation, idle sway and phase
+        // rotation so the field holds a still mandala. Audio-reactive amplitude (energy)
+        // is preserved, so a playing session still responds without coherent motion.
+        const slowEnvelope = reduced ? 1 : Math.cos(2 * Math.PI * beatHz * visualBeatScale * elapsedSeconds);
         const baseAmp = layer.amp * (0.4 + energy);
-        const amplitude = playing ? baseAmp * slowEnvelope : baseAmp * 0.35 * Math.sin(elapsedSeconds * 0.3 + l);
+        const amplitude = playing
+          ? baseAmp * slowEnvelope
+          : (reduced ? baseAmp * 0.35 : baseAmp * 0.35 * Math.sin(elapsedSeconds * 0.3 + l));
 
         // Golden-ratio phase rotation prevents modes locking into a static rosette.
-        const phasePhi = 2 * Math.PI * l * 0.618 * elapsedSeconds / 60;
+        const phasePhi = reduced ? 0 : 2 * Math.PI * l * 0.618 * elapsedSeconds / 60;
 
         layerAngularN[l] = angularN;
         layerAlpha[l] = alpha;
@@ -267,11 +285,23 @@ export default function CymaticsCanvas({
       displayWidth = dims.displayWidth;
       displayHeight = dims.displayHeight;
     };
-    if (zenMode) window.addEventListener("resize", handleResize);
+
+    let resizeObserver = null;
+    let windowResizeBound = false;
+    if (!zenMode && containerRef.current && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(containerRef.current);
+    } else {
+      // Zen mode, or no ResizeObserver support: recompute on window resize so
+      // the canvas backing store still tracks viewport changes.
+      window.addEventListener("resize", handleResize);
+      windowResizeBound = true;
+    }
 
     return () => {
       cancelAnimationFrame(animationFrameRef.current);
-      if (zenMode) window.removeEventListener("resize", handleResize);
+      if (windowResizeBound) window.removeEventListener("resize", handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
     };
   }, [fftAnalyserRef, isPlaying, zenMode, polarTables, palette]);
 
@@ -295,8 +325,8 @@ export default function CymaticsCanvas({
         <canvas ref={canvasRef} aria-label="Cymatic standing-wave visualizer (zen mode)"
           style={{ width: "100%", height: "100%", display: "block" }} />
         <div style={{
-          position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
-          fontSize: 10, color: "rgba(33,144,140,0.3)", fontFamily: "'JetBrains Mono',monospace",
+          position: "absolute", bottom: "calc(16px + env(safe-area-inset-bottom))", left: "50%", transform: "translateX(-50%)",
+          fontSize: 10, color: "rgba(33,144,140,0.7)", fontFamily: "'JetBrains Mono',monospace",
           pointerEvents: "none", letterSpacing: "0.08em",
         }}>
           ESC or double-click to exit
@@ -306,13 +336,18 @@ export default function CymaticsCanvas({
   }
 
   return (
-    <div style={{ position: "relative", margin: "0 auto", maxWidth: 300 }}>
-      <canvas ref={canvasRef} width={300} height={300}
-        aria-label="Cymatic standing-wave visualizer"
+    <div ref={containerRef} style={{ position: "relative", margin: "0 auto",
+      width: "100%", maxWidth: 560, aspectRatio: "1" }}>
+      <canvas ref={canvasRef}
+        className={isPlaying ? "gw-live" : undefined}
+        onClick={onToggleZen}
+        role="button" tabIndex={0}
+        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " " || e.key === "Spacebar") && !e.repeat) { e.preventDefault(); onToggleZen?.(); } }}
+        aria-label="Cymatic standing-wave visualizer — activate for zen mode"
         style={{
-          width: "100%", maxWidth: 300, aspectRatio: "1", borderRadius: 12,
-          background: "#000004", border: "1px solid rgba(59,82,139,0.15)",
-          display: "block", margin: "0 auto",
+          width: "100%", height: "100%", borderRadius: 12,
+          background: "#000004", border: "1px solid var(--border-2)",
+          display: "block", cursor: "pointer",
         }}
         title="Click for zen mode" />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>

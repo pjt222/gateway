@@ -16,8 +16,19 @@ export const PHASE_TEMPLATES = {
   ],
 };
 
-// Brainwave band ranges for beat frequency (Hz)
-export const BAND_RANGE = { delta: [0.3, 4], theta: [4, 8], alpha: [8, 13], beta: [13, 30], gamma: [30, 100] };
+// Single source of truth for the brainwave bands: key, display name, beat-frequency
+// range (Hz), and viridis color. getBandColor/getBandName (utils) and BAND_LABELS all
+// derive from this so the palette and ranges can never drift apart.
+export const BANDS = [
+  { key: "delta", name: "δ Delta", range: [0.3, 4],   color: "#7B2F8C" },
+  { key: "theta", name: "θ Theta", range: [4, 8],     color: "#4F6DB5" },
+  { key: "alpha", name: "α Alpha", range: [8, 13],    color: "#21908C" },
+  { key: "beta",  name: "β Beta",  range: [13, 30],   color: "#5DC863" },
+  { key: "gamma", name: "γ Gamma", range: [30, 100],  color: "#FDE725" },
+];
+
+// Brainwave band ranges for beat frequency (Hz), derived from BANDS.
+export const BAND_RANGE = Object.fromEntries(BANDS.map(b => [b.key, b.range]));
 
 export const PRESETS = {
   "Focus 10": {
@@ -69,10 +80,10 @@ export const PRESETS = {
 
 export const FADE_TIME = 4;
 
-export const BAND_LABELS = [
-  { name: "δ Delta", range: "0.5–4 Hz", color: "#7B2F8C" },
-  { name: "θ Theta", range: "4–8 Hz", color: "#4F6DB5" },
-  { name: "α Alpha", range: "8–13 Hz", color: "#21908C" },
-  { name: "β Beta", range: "13–30 Hz", color: "#5DC863" },
-  { name: "γ Gamma", range: "30–100 Hz", color: "#FDE725" },
-];
+// Legend rows derived from BANDS — range strings always match BAND_RANGE
+// (this is what fixes the old delta "0.5–4 Hz" vs actual 0.3 mismatch).
+export const BAND_LABELS = BANDS.map(b => ({
+  name: b.name,
+  range: `${b.range[0]}–${b.range[1]} Hz`,
+  color: b.color,
+}));

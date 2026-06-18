@@ -4,6 +4,7 @@ import * as Tone from "tone";
 import {
   BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_X_MAX, BESSEL_TABLE_SIZE,
 } from "./bessel";
+import { watchMedia } from "./utils";
 
 const SHELL_COUNT = 5;
 const SHELL_LEVELS = [0.18, 0.32, 0.46, 0.60, 0.74];
@@ -159,6 +160,12 @@ export default function CymaticsCanvas3D({
   const diffsRef = useRef(currentDiffs);
   const isPlayingRef = useRef(isPlaying);
   const playStartRef = useRef(null);
+  const zenDialogRef = useRef(null);
+  const reducedMotionRef = useRef(
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
+  );
 
   useEffect(() => { layersRef.current = layers; }, [layers]);
   useEffect(() => { diffsRef.current = currentDiffs; }, [currentDiffs]);
@@ -167,13 +174,20 @@ export default function CymaticsCanvas3D({
     if (isPlaying) playStartRef.current = performance.now() / 1000;
     else playStartRef.current = null;
   }, [isPlaying]);
+  useEffect(() => watchMedia("(prefers-reduced-motion: reduce)", (m) => { reducedMotionRef.current = m; }), []);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const initialWidth = zenMode ? window.innerWidth : 300;
-    const initialHeight = zenMode ? window.innerHeight : 300;
+    const measureSize = () => {
+      if (zenMode) return { w: window.innerWidth, h: window.innerHeight };
+      const s = Math.round(container.clientWidth || 0) || 300;
+      return { w: s, h: s };
+    };
+    const initial = measureSize();
+    const initialWidth = initial.w;
+    const initialHeight = initial.h;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -232,9 +246,11 @@ export default function CymaticsCanvas3D({
       const nowSeconds = performance.now() / 1000;
       const dt = nowSeconds - lastFrameTime;
       lastFrameTime = nowSeconds;
+      const reduced = reducedMotionRef.current;
 
-      // Slow auto-orbit, ~5 deg/s.
-      cameraAngle += dt * 0.087;
+      // Slow auto-orbit, ~5 deg/s — frozen under reduced-motion (the primary
+      // vestibular trigger); the shell holds a still pose instead.
+      if (!reduced) cameraAngle += dt * 0.087;
       const cameraRadius = 3.4;
       const cameraHeight = 2.0;
       camera.position.set(
@@ -282,13 +298,15 @@ export default function CymaticsCanvas3D({
             energy = 0.3;
           }
         } else {
-          energy = 0.25 + 0.2 * Math.sin(tSeconds * 0.4 + l * 0.7);
+          energy = reduced ? 0.45 : 0.25 + 0.2 * Math.sin(tSeconds * 0.4 + l * 0.7);
         }
 
-        const slowEnvelope = Math.cos(2 * Math.PI * beatHz * 0.25 * tSeconds);
+        const slowEnvelope = reduced ? 1 : Math.cos(2 * Math.PI * beatHz * 0.25 * tSeconds);
         const baseAmp = layer.amp * (0.4 + energy);
-        const amp = playing ? baseAmp * slowEnvelope : baseAmp * 0.35 * Math.sin(tSeconds * 0.3 + l);
-        const phasePhi = 2 * Math.PI * l * 0.618 * tSeconds / 60;
+        const amp = playing
+          ? baseAmp * slowEnvelope
+          : (reduced ? baseAmp * 0.35 : baseAmp * 0.35 * Math.sin(tSeconds * 0.3 + l));
+        const phasePhi = reduced ? 0 : 2 * Math.PI * l * 0.618 * tSeconds / 60;
 
         sharedLayerN[l] = angularN;
         sharedLayerAlpha[l] = alpha;
@@ -318,17 +336,28 @@ export default function CymaticsCanvas3D({
     animate();
 
     const handleResize = () => {
-      const newWidth = zenMode ? window.innerWidth : 300;
-      const newHeight = zenMode ? window.innerHeight : 300;
-      renderer.setSize(newWidth, newHeight);
-      camera.aspect = newWidth / newHeight;
+      const { w, h } = measureSize();
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
     };
-    if (zenMode) window.addEventListener("resize", handleResize);
+
+    let resizeObserver = null;
+    let windowResizeBound = false;
+    if (!zenMode && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(container);
+    } else {
+      // Zen mode, or no ResizeObserver support: recompute on window resize so
+      // the renderer still tracks viewport changes.
+      window.addEventListener("resize", handleResize);
+      windowResizeBound = true;
+    }
 
     return () => {
       cancelAnimationFrame(rafId);
-      if (zenMode) window.removeEventListener("resize", handleResize);
+      if (windowResizeBound) window.removeEventListener("resize", handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
       shellMeshes.forEach(m => m.material.dispose());
       planeGeometry.dispose();
       besselTex.dispose();
@@ -345,16 +374,18 @@ export default function CymaticsCanvas3D({
     return () => window.removeEventListener("keydown", handleKey);
   }, [zenMode, onToggleZen]);
 
+  useEffect(() => { if (zenMode) zenDialogRef.current?.focus(); }, [zenMode]);
+
   if (zenMode) {
     return (
-      <div role="dialog" aria-modal="true"
+      <div ref={zenDialogRef} role="dialog" aria-modal="true"
         aria-label="Zen 3D cymatic visualizer — press Escape to exit" tabIndex={-1}
         style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#000004" }}
         onDoubleClick={onToggleZen}>
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
         <div style={{
-          position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
-          fontSize: 10, color: "rgba(33,144,140,0.3)", fontFamily: "'JetBrains Mono',monospace",
+          position: "absolute", bottom: "calc(16px + env(safe-area-inset-bottom))", left: "50%", transform: "translateX(-50%)",
+          fontSize: 10, color: "rgba(33,144,140,0.7)", fontFamily: "'JetBrains Mono',monospace",
           pointerEvents: "none", letterSpacing: "0.08em",
         }}>
           ESC or double-click to exit
@@ -364,11 +395,16 @@ export default function CymaticsCanvas3D({
   }
 
   return (
-    <div style={{ position: "relative", margin: "0 auto", maxWidth: 300 }}>
-      <div ref={containerRef} aria-label="3D cymatic standing-wave visualizer"
+    <div style={{ position: "relative", margin: "0 auto", width: "100%", maxWidth: 560 }}>
+      <div ref={containerRef} aria-label="3D cymatic standing-wave visualizer — activate for zen mode"
+        className={isPlaying ? "gw-live" : undefined}
+        onClick={onToggleZen}
+        role="button" tabIndex={0}
+        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " " || e.key === "Spacebar") && !e.repeat) { e.preventDefault(); onToggleZen?.(); } }}
+        title="Click for zen mode"
         style={{
-          width: 300, height: 300, borderRadius: 12, overflow: "hidden",
-          border: "1px solid rgba(59,82,139,0.15)", background: "#000004",
+          width: "100%", aspectRatio: "1", borderRadius: 12, overflow: "hidden",
+          border: "1px solid var(--border-2)", background: "#000004", cursor: "pointer",
         }} />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>
         <button onClick={onToggle3D} aria-label="Switch to 2D view"
