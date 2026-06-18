@@ -47,11 +47,11 @@ export function TimerDisplay({ elapsed, duration }) {
         strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C*(1-progress)}
         transform="rotate(-90 65 65)" style={{transition:"stroke-dashoffset 0.3s linear"}}/>
       <defs><linearGradient id="tG" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#3B528B"/><stop offset="100%" stopColor="var(--purple-bin)"/>
+        <stop offset="0%" style={{stopColor:"var(--blue)"}}/><stop offset="100%" style={{stopColor:"var(--purple-bin)"}}/>
       </linearGradient></defs>
       <text x="65" y="62" textAnchor="middle" dominantBaseline="middle" fill="#e2e0f0"
         fontSize="20" fontFamily="'JetBrains Mono','SF Mono',monospace" fontWeight="300">{fmt(elapsed)}</text>
-      <text x="65" y="82" textAnchor="middle" fill="var(--teal-label)"
+      <text x="65" y="82" textAnchor="middle" style={{fill:"var(--teal-label)"}}
         fontSize="10" fontFamily="'JetBrains Mono',monospace">/ {fmt(duration)}</text>
     </svg>
   );
