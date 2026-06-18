@@ -352,9 +352,12 @@ export default function CymaticsParticles3D({
 
     let cameraAngle = Math.PI * 0.25;
     let lastFrameTime = performance.now() / 1000;
-    let rafId;
+    let rafId = 0;
+    let stopped = false;
 
     const animate = () => {
+      rafId = 0; // the queued frame has fired; cleared so startLoop sees no live frame
+      if (stopped) return;
       const nowSeconds = performance.now() / 1000;
       const dt = Math.min(0.05, nowSeconds - lastFrameTime);
       lastFrameTime = nowSeconds;
@@ -450,7 +453,20 @@ export default function CymaticsParticles3D({
       renderer.render(scene, camera);
       rafId = requestAnimationFrame(animate);
     };
-    animate();
+
+    // Single owner of the rAF loop: cancel any queued frame, then re-arm only if
+    // visible. Idempotent, so a doubled/stale 'visible' event (or mounting while
+    // already hidden) can never leave two self-scheduling loops running at once —
+    // which would double gpu.compute() and orphan a loop past dispose().
+    const startLoop = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      if (!document.hidden && !stopped) {
+        lastFrameTime = performance.now() / 1000;
+        rafId = requestAnimationFrame(animate);
+      }
+    };
+    startLoop();
 
     const handleResize = () => {
       const { w, h } = measureSize();
@@ -470,19 +486,14 @@ export default function CymaticsParticles3D({
     }
 
     // Pause the GPGPU loop while the tab/app is hidden — a compute + draw pass
-    // every frame is wasted battery in the background (mobile WebView).
-    const handleVisibility = () => {
-      if (document.hidden) {
-        if (rafId) cancelAnimationFrame(rafId);
-      } else {
-        lastFrameTime = performance.now() / 1000;
-        rafId = requestAnimationFrame(animate);
-      }
-    };
+    // every frame is wasted battery in the background (mobile WebView). startLoop
+    // both pauses (when hidden) and resumes (when visible) idempotently.
+    const handleVisibility = () => { startLoop(); };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      stopped = true;
+      if (rafId) cancelAnimationFrame(rafId);
       document.removeEventListener("visibilitychange", handleVisibility);
       if (windowResizeBound) window.removeEventListener("resize", handleResize);
       if (resizeObserver) resizeObserver.disconnect();
