@@ -21,8 +21,8 @@ export const sVal = {
 
 export const sSlider = {
   width: "100%",
-  height: 3,
+  height: 5,
   appearance: "auto",
-  accentColor: "var(--blue)",
+  accentColor: "var(--slider)",
   cursor: "pointer",
 };

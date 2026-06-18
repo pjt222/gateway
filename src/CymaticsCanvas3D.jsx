@@ -367,7 +367,7 @@ export default function CymaticsCanvas3D({
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
         <div style={{
           position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
-          fontSize: 10, color: "rgba(33,144,140,0.3)", fontFamily: "'JetBrains Mono',monospace",
+          fontSize: 10, color: "rgba(33,144,140,0.7)", fontFamily: "'JetBrains Mono',monospace",
           pointerEvents: "none", letterSpacing: "0.08em",
         }}>
           ESC or double-click to exit

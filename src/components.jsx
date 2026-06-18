@@ -25,7 +25,7 @@ export function PhaseBar({ phases, elapsed, totalDuration }) {
               <span style={{ position: "relative", zIndex: 1, display: "block", textAlign: "center",
                 lineHeight: "28px", fontSize: 9, letterSpacing: "0.06em",
                 fontFamily: "'JetBrains Mono',monospace", textTransform: "uppercase",
-                color: active ? "#e2e0f0" : "rgba(53,176,171,0.7)", fontWeight: active ? 600 : 400,
+                color: active ? "#e2e0f0" : "rgba(53,176,171,0.9)", fontWeight: active ? 600 : 400,
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", padding: "0 2px" }}>
                 {p.name}
               </span>
@@ -71,7 +71,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
   const actualMax = range ? layer.f_base + dfMax : 660;
   const gGap = compact ? 6 : 10;
   return (
-    <div style={{ background:"rgba(11,9,36,0.7)",border:`1px solid ${bc}22`,borderRadius:10,
+    <div style={{ background:"var(--surface)",border:`1px solid ${bc}3a`,borderRadius:10,
       padding:compact?"8px 10px":"12px 14px",display:"flex",flexDirection:"column",gap:compact?4:8 }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
         <div style={{ display:"flex",alignItems:"center",gap:6 }}>
@@ -93,7 +93,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
             fontFamily:"'JetBrains Mono',monospace",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
             minWidth:0,flexShrink:1 }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
           <button onClick={onRemove} aria-label={`Remove ${layer.label}`} style={{ background:"transparent",border:"none",
-            color:"rgba(200,180,220,0.5)",cursor:"pointer",fontSize:compact?16:18,padding:compact?"4px 6px":"8px 10px",
+            color:"rgba(200,180,220,0.8)",cursor:"pointer",fontSize:compact?16:18,padding:compact?"4px 6px":"8px 10px",
             lineHeight:1,minWidth:compact?32:44,minHeight:compact?32:44,
             display:"flex",alignItems:"center",justifyContent:"center" }}>&times;</button>
         </div>

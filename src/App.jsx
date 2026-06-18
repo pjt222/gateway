@@ -10,7 +10,7 @@ const CymaticsCanvas3D = lazy(() => import("./CymaticsCanvas3D"));
 const Viz3DFallback = () => (
   <div style={{ width: 300, height: 300, borderRadius: 12, background: "#000004",
     border: "1px solid var(--border-2)", display: "flex", alignItems: "center",
-    justifyContent: "center", color: "rgba(33,144,140,0.5)",
+    justifyContent: "center", color: "rgba(33,144,140,0.78)",
     fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: "0.1em" }}>
     Loading 3D…
   </div>
@@ -99,7 +99,7 @@ export default function GatewaySession() {
               borderRadius:10,padding:"8px 12px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                     {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
                     {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
@@ -232,7 +232,7 @@ export default function GatewaySession() {
             borderRadius:10,padding:"10px 14px" }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
               <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(33,144,140,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                   {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
                   {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
@@ -310,7 +310,7 @@ export default function GatewaySession() {
           padding:desktop?"10px 14px":"12px 14px",
           display:"flex",alignItems:"center",gap:14 }}>
           <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
-            <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.6)",
+            <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.85)",
               boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.3)":"none" }}/>
             <span style={{ fontSize:desktop?12:13,fontFamily:"'JetBrains Mono',monospace",color:"var(--text-3)",fontWeight:500 }}>
               Pink Noise</span>
@@ -321,7 +321,7 @@ export default function GatewaySession() {
           <span style={{...sVal,flexShrink:0,minWidth:40,textAlign:"right",marginTop:0}}>{Math.round(noiseLevel*100)}%</span>
         </div>
 
-        <p style={{ textAlign:"center",fontSize:10,color:"rgba(53,176,171,0.65)",marginTop:desktop?8:28,
+        <p style={{ textAlign:"center",fontSize:10,color:"rgba(53,176,171,0.9)",marginTop:desktop?8:28,
           fontFamily:"'JetBrains Mono',monospace" }}>
           Web Audio API &middot; Phase-modulated frequency ramping &middot; All parameters live-adjustable</p>
         <div role="status" aria-live="polite" style={{position:"absolute",width:1,height:1,overflow:"hidden",clip:"rect(0,0,0,0)"}}>
