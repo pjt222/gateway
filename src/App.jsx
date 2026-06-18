@@ -66,7 +66,7 @@ export default function GatewaySession() {
             color:"var(--teal-label)",margin:0 }}>Gateway Session</h1>
           <p style={{ fontSize:11,color:"rgba(53,176,171,0.85)",marginTop:6,
             fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.05em" }}>
-            Binaural &middot; Isochronal &middot; Phase Scripting &middot; Stereo Headphones Required</p>
+            Binaural &middot; Isochronal &middot; Phase Scripting &middot; Best with Headphones</p>
         </div>
 
         {/* ── Nautilus spiral: Canvas at eye, controls in φ-chambers ── */}
@@ -104,7 +104,7 @@ export default function GatewaySession() {
                     {globalVol > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
                     {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
                   </svg>
-                  <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"var(--accent)",fontWeight:500}}>Vol</span>
+                  <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:"var(--accent)",fontWeight:500}}>Volume</span>
                 </div>
                 <span style={sVal}>{globalVol}%</span>
               </div>
@@ -147,10 +147,20 @@ export default function GatewaySession() {
                   </select>
                 </div>
               </div>
+              <p style={{fontSize:11,color:"var(--teal-label)",margin:"2px 0 0",lineHeight:1.5,
+                display:"flex",alignItems:"center",gap:7,opacity:0.92}}>
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                  <path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="4" height="6" rx="1.2"/><rect x="18" y="14" width="4" height="6" rx="1.2"/>
+                </svg>
+                Headphones reveal the binaural beat. On speakers, set a layer to ISO.
+              </p>
             </div>
 
             {/* Outer spiral — Presets (col 3, row 2-3) */}
             <div style={{gridColumn:3,gridRow:"2/4",display:"flex",flexDirection:"column",gap:6,alignSelf:"start"}}>
+              <span style={{fontSize:10,color:"var(--teal-label)",textTransform:"uppercase",
+                letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",opacity:0.85}}>Monroe Focus Levels</span>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {Object.keys(PRESETS).map(name=>(
                   <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
@@ -223,6 +233,14 @@ export default function GatewaySession() {
                 </select>
               </div>
             </div>
+            <p style={{fontSize:11,color:"var(--teal-label)",margin:0,lineHeight:1.5,maxWidth:360,
+              display:"flex",alignItems:"center",gap:7,opacity:0.92,justifyContent:"center",textAlign:"center"}}>
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                <path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="4" height="6" rx="1.2"/><rect x="18" y="14" width="4" height="6" rx="1.2"/>
+              </svg>
+              Headphones reveal the binaural beat. On speakers, set a layer to ISO.
+            </p>
           </div>
         )}
 
@@ -238,7 +256,7 @@ export default function GatewaySession() {
                   {globalVol > 40 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
                 </svg>
                 <span style={{ fontSize:12,fontFamily:"'JetBrains Mono',monospace",color:"var(--accent)",fontWeight:500 }}>
-                  Master Volume</span>
+                  Volume</span>
               </div>
               <span style={sVal}>{globalVol}%</span>
             </div>
@@ -247,6 +265,8 @@ export default function GatewaySession() {
               onChange={e=>setGlobalVol(+e.target.value)} style={{...sSlider,marginTop:6}}/>
           </div>
           <div style={{ marginTop:20 }}>
+            <div style={{textAlign:"center",fontSize:10,color:"var(--teal-label)",textTransform:"uppercase",
+              letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",opacity:0.85,marginBottom:8}}>Monroe Focus Levels</div>
             <div style={{ display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center" }}>
               {Object.keys(PRESETS).map(name=>(
                 <button key={name} onClick={()=>loadPreset(name)} disabled={isPlaying}
@@ -323,7 +343,7 @@ export default function GatewaySession() {
 
         <p style={{ textAlign:"center",fontSize:10,color:"rgba(53,176,171,0.9)",marginTop:desktop?8:28,
           fontFamily:"'JetBrains Mono',monospace" }}>
-          Web Audio API &middot; Phase-modulated frequency ramping &middot; All parameters live-adjustable</p>
+          Find a comfortable volume &middot; headphones reveal the full effect &middot; settle in and let the layers carry you</p>
         <div role="status" aria-live="polite" style={{position:"absolute",width:1,height:1,overflow:"hidden",clip:"rect(0,0,0,0)"}}>
           {isPlaying ? "Session started" : elapsed > 0 ? "Session stopped" : ""}
         </div>

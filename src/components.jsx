@@ -83,7 +83,8 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:compact?4:6 }}>
           <button onClick={()=>onChange({...layer,mode:iso?"binaural":"isochronal"})}
-            role="switch" aria-checked={iso} aria-label="Isochronal mode" style={{
+            role="switch" aria-checked={iso} aria-label="Isochronal mode"
+            title={iso ? "Isochronal — one pulsing tone, plays on speakers. Tap for Binaural." : "Binaural — needs headphones for the beat. Tap for Isochronal (speakers)."} style={{
             fontSize:10,padding:compact?"2px 8px":"4px 10px",borderRadius:5,cursor:"pointer",minHeight:compact?28:32,
             fontFamily:"'JetBrains Mono',monospace",border:"1px solid",
             background:iso?"rgba(211,67,110,0.12)":"rgba(68,1,84,0.12)",
@@ -99,12 +100,12 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
         </div>
       </div>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:gGap }}>
-        <div><span style={sLabel}>Carrier (L)</span>
+        <div><span style={sLabel} title="Base tone in your left ear (Hz)">Carrier (L)</span>
           <input type="range" min={0} max={600} step={1} value={layer.f_base}
             aria-label={`${layer.label} carrier frequency`}
             onChange={(e)=>onChange({...layer,f_base:+e.target.value})} style={sSlider}/>
           <span style={sVal}>{layer.f_base} Hz</span></div>
-        <div><span style={sLabel}>Actual (R)</span>
+        <div><span style={sLabel} title="Right-ear tone — the gap between L and R is the beat">Actual (R)</span>
           <input type="range" min={actualMin} max={actualMax} step={0.1} value={layer.f_base + dd}
             aria-label={`${layer.label} actual right-ear frequency`}
             onChange={(e)=>{
@@ -120,7 +121,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
             aria-label={`${layer.label} volume`}
             onChange={(e)=>onChange({...layer,amp:+e.target.value/100})} style={sSlider}/>
           <span style={sVal}>{Math.round(layer.amp*100)}%</span></div>
-        <div><span style={sLabel}>Beat Δf {hasRamp ? "Start" : ""}</span>
+        <div><span style={sLabel} title="Beat frequency — the pulse your brain entrains to (Hz)">Beat Δf {hasRamp ? "Start" : ""}</span>
           <input type="range" min={dfMin} max={dfMax} step={0.1} value={layer.f_diff_start}
             aria-label={`${layer.label} beat frequency start`}
             onChange={(e)=>onChange({...layer,f_diff_start:+e.target.value})} style={sSlider}/>
