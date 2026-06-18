@@ -1,8 +1,46 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import * as Tone from "tone";
 import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer.js";
-import { VIRIDIS_GLSL } from "./cymaticField.glsl";
+import {
+  BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_X_MAX, BESSEL_TABLE_SIZE,
+} from "./bessel";
+import { VIRIDIS_GLSL, FIELD_UNIFORMS, FIELD_FUNCS } from "./cymaticField.glsl";
 import { watchMedia } from "./utils";
+
+const BAND_TO_N = { delta: 1, theta: 2, alpha: 3, beta: 4, gamma: 5 };
+
+// Angular mode n (number of nodal diameters) and radial mode m (nodal circles),
+// mapped from the layer's band and carrier — identical to the nodal-shell viz so
+// the two 3D modes describe the same standing-wave field.
+function pickAngularMode(layer, layerIndex) {
+  if (layer.band && BAND_TO_N[layer.band] !== undefined) return BAND_TO_N[layer.band];
+  return (layerIndex % 6) + 1;
+}
+function pickRadialMode(carrierFrequency) {
+  const m = 1 + Math.floor((carrierFrequency - 70) / 130);
+  return Math.min(4, Math.max(1, m));
+}
+
+// J_n(x) lookup as a RedFormat float texture (rows = n, cols = x), sampled by
+// besselLookup() in the shaders. Same packing as CymaticsCanvas3D.
+function buildBesselTexture() {
+  const width = BESSEL_TABLE_SIZE + 1;
+  const height = BESSEL_N_MAX + 1;
+  const data = new Float32Array(width * height);
+  for (let n = 0; n <= BESSEL_N_MAX; n++) {
+    const tbl = J_TABLE[n];
+    for (let i = 0; i < width; i++) data[n * width + i] = tbl[i];
+  }
+  const tex = new THREE.DataTexture(data, width, height, THREE.RedFormat, THREE.FloatType);
+  tex.minFilter = THREE.NearestFilter;
+  tex.magFilter = THREE.NearestFilter;
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.unpackAlignment = 1;
+  tex.needsUpdate = true;
+  return tex;
+}
 
 // Drifting Chladni sand: GPGPU particles wander the unit disc and (once physics
 // lands in the next commit) settle onto the standing-wave nodal lines. This
@@ -33,11 +71,53 @@ function seedDiscPositions(data) {
   }
 }
 
-// Identity ping-pong: hold positions still until the physics pass replaces this.
-const COMPUTE_IDENTITY = /* glsl */`
+// Sand physics: each grain drifts down the gradient of the field energy E = u²
+// toward the nodal lines (where u → 0), with a beat-modulated jitter that lets it
+// hop along the nodes and escape shallow minima, plus damping so it settles.
+// Channels: (xy) = disc position in [-1,1]², (zw) = velocity.
+const COMPUTE_PHYSICS = /* glsl */`
+precision highp float;
+${FIELD_UNIFORMS}
+uniform float uDt;
+uniform float uTime;
+uniform float uK;        // drift strength toward nodes
+uniform float uJitter;   // random hop magnitude
+uniform float uDamp;     // velocity retention per step (< 1 settles)
+uniform float uBeatPulse;// vibration intensity from the binaural beat envelope
+${FIELD_FUNCS}
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+
 void main() {
   vec2 uv = gl_FragCoord.xy / resolution.xy;
-  gl_FragColor = texture2D(texturePosition, uv);
+  vec4 s = texture2D(texturePosition, uv);
+  vec2 pos = s.xy;
+  vec2 vel = s.zw;
+
+  // ∇(u²) by central differences — reuses cymaticField() verbatim, no analytic J_n'.
+  float e = 0.006;
+  float uxp = cymaticField(pos + vec2(e, 0.0));
+  float uxm = cymaticField(pos - vec2(e, 0.0));
+  float uyp = cymaticField(pos + vec2(0.0, e));
+  float uym = cymaticField(pos - vec2(0.0, e));
+  vec2 gradE = vec2(uxp * uxp - uxm * uxm, uyp * uyp - uym * uym) / (2.0 * e);
+
+  vec2 acc = -uK * gradE;                       // descend energy → collect on nodes
+  vec2 jit = vec2(
+    hash(uv * 91.7 + uTime * 1.13),
+    hash(uv * 57.3 - uTime * 0.97)
+  ) * 2.0 - 1.0;
+  acc += jit * uJitter * uBeatPulse;            // beat felt as agitation, not a flash
+
+  vel += acc * uDt;
+  vel *= uDamp;
+  pos += vel * uDt;
+
+  // The clamped plate's rim (r = 1) is itself a nodal line; keep grains on the disc.
+  float rr = length(pos);
+  if (rr > 0.995) { pos = pos / rr * 0.995; vel *= -0.25; }
+
+  gl_FragColor = vec4(pos, vel);
 }
 `;
 
@@ -128,16 +208,27 @@ function ModePicker({ mode, onSet }) {
 }
 
 export default function CymaticsParticles3D({
-  isPlaying, zenMode, onToggleZen, onToggle3D, viz3DMode, onSet3DMode,
+  fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen, onToggle3D,
+  viz3DMode, onSet3DMode,
 }) {
   const containerRef = useRef(null);
   const zenDialogRef = useRef(null);
+  const layersRef = useRef(layers);
+  const diffsRef = useRef(currentDiffs);
+  const isPlayingRef = useRef(isPlaying);
+  const playStartRef = useRef(null);
   const reducedMotionRef = useRef(
     typeof window !== "undefined" && window.matchMedia
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : false
   );
 
+  useEffect(() => { layersRef.current = layers; }, [layers]);
+  useEffect(() => { diffsRef.current = currentDiffs; }, [currentDiffs]);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+    playStartRef.current = isPlaying ? performance.now() / 1000 : null;
+  }, [isPlaying]);
   useEffect(() => watchMedia("(prefers-reduced-motion: reduce)", (m) => { reducedMotionRef.current = m; }), []);
 
   useEffect(() => {
@@ -161,6 +252,15 @@ export default function CymaticsParticles3D({
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, initial.w / initial.h, 0.1, 50);
 
+    // ── Standing-wave field, shared with the compute shader ───────────────
+    const besselTex = buildBesselTexture();
+    const sharedLayerN = new Float32Array(6);
+    const sharedLayerAlpha = new Float32Array(6);
+    const sharedLayerAmp = new Float32Array(6);
+    const sharedLayerPhase = Array.from({ length: 6 }, () => new THREE.Vector2(1, 0));
+    const sharedLayerCount = { value: 0 };
+    const sharedFieldNorm = { value: 1.0 };
+
     // ── GPGPU particle state ──────────────────────────────────────────────
     const { w: TEX_W, h: TEX_H } = pickTextureSize();
     const COUNT = TEX_W * TEX_H;
@@ -169,8 +269,26 @@ export default function CymaticsParticles3D({
 
     const pos0 = gpu.createTexture();
     seedDiscPositions(pos0.image.data);
-    const posVar = gpu.addVariable("texturePosition", COMPUTE_IDENTITY, pos0);
+    const posVar = gpu.addVariable("texturePosition", COMPUTE_PHYSICS, pos0);
     gpu.setVariableDependencies(posVar, [posVar]);
+
+    const computeUniforms = posVar.material.uniforms;
+    computeUniforms.besselTex = { value: besselTex };
+    computeUniforms.besselTexW = { value: BESSEL_TABLE_SIZE + 1 };
+    computeUniforms.besselNRows = { value: BESSEL_N_MAX + 1 };
+    computeUniforms.besselXMax = { value: BESSEL_X_MAX };
+    computeUniforms.layerN = { value: sharedLayerN };
+    computeUniforms.layerAlpha = { value: sharedLayerAlpha };
+    computeUniforms.layerAmp = { value: sharedLayerAmp };
+    computeUniforms.layerPhase = { value: sharedLayerPhase };
+    computeUniforms.layerCount = sharedLayerCount;
+    computeUniforms.fieldNorm = sharedFieldNorm;
+    computeUniforms.uDt = { value: 1 / 60 };
+    computeUniforms.uTime = { value: 0 };
+    computeUniforms.uK = { value: 0.28 };
+    computeUniforms.uJitter = { value: 0.14 };
+    computeUniforms.uDamp = { value: 0.9 };
+    computeUniforms.uBeatPulse = { value: 0.4 };
 
     const initError = gpu.init();
     let gpuOk = true;
@@ -232,6 +350,76 @@ export default function CymaticsParticles3D({
       camera.lookAt(0, 0, 0);
 
       if (gpuOk) {
+        // ── Feed the standing-wave field (stable spatial nodes) + beat pulse ──
+        const playing = isPlayingRef.current && playStartRef.current !== null;
+        const tSeconds = playing ? nowSeconds - playStartRef.current : nowSeconds;
+        const sessionLayers = layersRef.current;
+        const beatFrequencies = diffsRef.current;
+        const layerCount = Math.min(6, sessionLayers.length);
+
+        let fftBins = null;
+        let sampleRate = 48000;
+        if (fftAnalyserRef?.current && playing) {
+          try {
+            fftBins = fftAnalyserRef.current.getValue();
+            sampleRate = Tone.getContext().sampleRate || 48000;
+          } catch { fftBins = null; }
+        }
+
+        let ampSum = 0;
+        let pulseAccum = 0;
+        for (let l = 0; l < layerCount; l++) {
+          const layer = sessionLayers[l];
+          const angularN = pickAngularMode(layer, l);
+          const radialM = pickRadialMode(layer.f_base);
+          const alpha = BESSEL_ZEROS[angularN][radialM - 1];
+          const beatHz = (beatFrequencies && beatFrequencies[l]) || layer.f_diff_start;
+
+          let energy;
+          if (fftBins) {
+            const binWidth = sampleRate / (fftBins.length * 2);
+            const binIndex = Math.round(layer.f_base / binWidth);
+            if (binIndex >= 0 && binIndex < fftBins.length) {
+              const dB = fftBins[binIndex];
+              const linear = isFinite(dB) ? Math.pow(10, dB / 20) : 0;
+              energy = Math.min(1, linear * 6);
+            } else {
+              energy = 0.3;
+            }
+          } else {
+            energy = 0.35; // constant idle energy → nodes hold still (no breathing)
+          }
+
+          // Stable amplitude: the fast beat envelope is deliberately NOT baked in
+          // here, so the nodal geometry stays put and grains can settle on it.
+          const baseAmp = layer.amp * (0.4 + energy);
+          // Slow golden-ratio phase rotation morphs the nodes gently — half the
+          // shell's rate so the sand has time to pile; frozen under reduced-motion.
+          const phasePhi = reduced ? 0 : 2 * Math.PI * l * 0.618 * tSeconds / 120;
+
+          sharedLayerN[l] = angularN;
+          sharedLayerAlpha[l] = alpha;
+          sharedLayerAmp[l] = baseAmp;
+          sharedLayerPhase[l].set(Math.cos(phasePhi), Math.sin(phasePhi));
+          ampSum += Math.abs(baseAmp);
+          pulseAccum += Math.abs(Math.cos(2 * Math.PI * beatHz * 0.25 * tSeconds));
+        }
+        for (let l = layerCount; l < 6; l++) {
+          sharedLayerN[l] = 0; sharedLayerAlpha[l] = 0; sharedLayerAmp[l] = 0;
+          sharedLayerPhase[l].set(1, 0);
+        }
+        sharedLayerCount.value = layerCount;
+        sharedFieldNorm.value = 1 / Math.max(0.5, ampSum);
+
+        computeUniforms.uTime.value = nowSeconds;
+        computeUniforms.uDt.value = dt;
+        // Beat envelope drives jitter only (agitation), never the spatial field —
+        // so a beat is felt as the sand stirring, not the whole disc flashing.
+        computeUniforms.uBeatPulse.value = reduced
+          ? 0.12
+          : (playing ? 0.3 + 0.7 * (pulseAccum / Math.max(1, layerCount)) : 0.35);
+        posVar.material.uniformsNeedUpdate = true;
+
         gpu.compute();
         pointsMaterial.uniforms.uPosTex.value = gpu.getCurrentRenderTarget(posVar).texture;
       }
@@ -277,12 +465,13 @@ export default function CymaticsParticles3D({
       if (resizeObserver) resizeObserver.disconnect();
       geometry.dispose();
       pointsMaterial.dispose();
+      besselTex.dispose();
       gpu.dispose();
       renderer.dispose();
       const dom = renderer.domElement;
       if (dom.parentNode) dom.parentNode.removeChild(dom);
     };
-  }, [zenMode]);
+  }, [zenMode, fftAnalyserRef]);
 
   useEffect(() => {
     if (!zenMode) return;
