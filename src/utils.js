@@ -2,7 +2,10 @@ import { BANDS } from "./constants";
 
 // Band lookups derive from the single BANDS source (constants.js) by beat-frequency
 // upper bound, so colors/names can never drift from BAND_RANGE / BAND_LABELS.
-const bandFor = (f) => BANDS.find((b) => f <= b.range[1]) ?? BANDS[BANDS.length - 1];
+// Classify by strict upper bound so a value exactly on an overlapping boundary
+// (4, 8, 13, 30) belongs to the higher band per EEG convention (4 Hz = theta,
+// not delta); the last band catches everything at/above the top of the range.
+const bandFor = (f) => BANDS.find((b) => f < b.range[1]) ?? BANDS[BANDS.length - 1];
 export function getBandColor(f) { return bandFor(f).color; }
 // Derive the short name from the structured key (e.g. "delta" -> "Delta") rather
 // than parsing the display string, so band naming can't break on a label change.
