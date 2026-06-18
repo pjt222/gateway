@@ -21,7 +21,7 @@ export function PhaseBar({ phases, elapsed, totalDuration }) {
             <div key={i} style={{ width: `${p.pct*100}%`, position: "relative",
               borderRight: i < phases.length-1 ? "1px solid rgba(0,0,4,0.8)" : "none", overflow: "hidden" }}>
               <div style={{ position: "absolute", inset: 0, background: colors[i%colors.length],
-                width: `${localP*100}%`, transition: "width 0.5s linear" }} />
+                width: `${localP*100}%`, transition: "width 0.3s linear" }} />
               <span style={{ position: "relative", zIndex: 1, display: "block", textAlign: "center",
                 lineHeight: "28px", fontSize: 9, letterSpacing: "0.06em",
                 fontFamily: "'JetBrains Mono',monospace", textTransform: "uppercase",
@@ -45,7 +45,7 @@ export function TimerDisplay({ elapsed, duration }) {
       <circle cx="65" cy="65" r="52" fill="none" stroke="rgba(59,82,139,0.1)" strokeWidth="3"/>
       <circle cx="65" cy="65" r="52" fill="none" stroke="url(#tG)" strokeWidth="3"
         strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C*(1-progress)}
-        transform="rotate(-90 65 65)" style={{transition:"stroke-dashoffset 1s linear"}}/>
+        transform="rotate(-90 65 65)" style={{transition:"stroke-dashoffset 0.3s linear"}}/>
       <defs><linearGradient id="tG" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stopColor="#3B528B"/><stop offset="100%" stopColor="var(--purple-bin)"/>
       </linearGradient></defs>

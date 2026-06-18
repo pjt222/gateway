@@ -159,6 +159,11 @@ export default function CymaticsCanvas3D({
   const diffsRef = useRef(currentDiffs);
   const isPlayingRef = useRef(isPlaying);
   const playStartRef = useRef(null);
+  const reducedMotionRef = useRef(
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
+  );
 
   useEffect(() => { layersRef.current = layers; }, [layers]);
   useEffect(() => { diffsRef.current = currentDiffs; }, [currentDiffs]);
@@ -167,6 +172,13 @@ export default function CymaticsCanvas3D({
     if (isPlaying) playStartRef.current = performance.now() / 1000;
     else playStartRef.current = null;
   }, [isPlaying]);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => { reducedMotionRef.current = mq.matches; };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -238,9 +250,11 @@ export default function CymaticsCanvas3D({
       const nowSeconds = performance.now() / 1000;
       const dt = nowSeconds - lastFrameTime;
       lastFrameTime = nowSeconds;
+      const reduced = reducedMotionRef.current;
 
-      // Slow auto-orbit, ~5 deg/s.
-      cameraAngle += dt * 0.087;
+      // Slow auto-orbit, ~5 deg/s — frozen under reduced-motion (the primary
+      // vestibular trigger); the shell holds a still pose instead.
+      if (!reduced) cameraAngle += dt * 0.087;
       const cameraRadius = 3.4;
       const cameraHeight = 2.0;
       camera.position.set(
@@ -288,13 +302,15 @@ export default function CymaticsCanvas3D({
             energy = 0.3;
           }
         } else {
-          energy = 0.25 + 0.2 * Math.sin(tSeconds * 0.4 + l * 0.7);
+          energy = reduced ? 0.45 : 0.25 + 0.2 * Math.sin(tSeconds * 0.4 + l * 0.7);
         }
 
-        const slowEnvelope = Math.cos(2 * Math.PI * beatHz * 0.25 * tSeconds);
+        const slowEnvelope = reduced ? 1 : Math.cos(2 * Math.PI * beatHz * 0.25 * tSeconds);
         const baseAmp = layer.amp * (0.4 + energy);
-        const amp = playing ? baseAmp * slowEnvelope : baseAmp * 0.35 * Math.sin(tSeconds * 0.3 + l);
-        const phasePhi = 2 * Math.PI * l * 0.618 * tSeconds / 60;
+        const amp = playing
+          ? baseAmp * slowEnvelope
+          : (reduced ? baseAmp * 0.35 : baseAmp * 0.35 * Math.sin(tSeconds * 0.3 + l));
+        const phasePhi = reduced ? 0 : 2 * Math.PI * l * 0.618 * tSeconds / 60;
 
         sharedLayerN[l] = angularN;
         sharedLayerAlpha[l] = alpha;

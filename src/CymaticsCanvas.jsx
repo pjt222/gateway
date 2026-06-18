@@ -62,6 +62,11 @@ export default function CymaticsCanvas({
   const layersRef = useRef(layers);
   const playStartTimeRef = useRef(null);
   const zenContainerRef = useRef(null);
+  const reducedMotionRef = useRef(
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
+  );
 
   const palette = useMemo(() => buildPalette(), []);
 
@@ -102,6 +107,13 @@ export default function CymaticsCanvas({
     if (isPlaying) playStartTimeRef.current = performance.now() / 1000;
     else playStartTimeRef.current = null;
   }, [isPlaying]);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => { reducedMotionRef.current = mq.matches; };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -145,6 +157,7 @@ export default function CymaticsCanvas({
       const beatFrequencies = currentDiffsRef.current;
       const layerCount = sessionLayers.length;
       const playing = isPlaying && playStartTimeRef.current !== null;
+      const reduced = reducedMotionRef.current;
       const elapsedSeconds = playing
         ? performance.now() / 1000 - playStartTimeRef.current
         : performance.now() / 1000;
@@ -188,19 +201,24 @@ export default function CymaticsCanvas({
             energy = 0.3;
           }
         } else {
-          // Idle-state breathing so canvas never goes blank.
-          energy = 0.25 + 0.2 * Math.sin(elapsedSeconds * 0.4 + l * 0.7);
+          // Idle-state breathing so canvas never goes blank (frozen under reduced-motion).
+          energy = reduced ? 0.45 : 0.25 + 0.2 * Math.sin(elapsedSeconds * 0.4 + l * 0.7);
         }
 
         // Slow visual envelope at beat frequency, scaled down to avoid strobing
         // at gamma rates (40+ Hz).
         const visualBeatScale = 0.25;
-        const slowEnvelope = Math.cos(2 * Math.PI * beatHz * visualBeatScale * elapsedSeconds);
+        // Reduced-motion: freeze the time-driven beat oscillation, idle sway and phase
+        // rotation so the field holds a still mandala. Audio-reactive amplitude (energy)
+        // is preserved, so a playing session still responds without coherent motion.
+        const slowEnvelope = reduced ? 1 : Math.cos(2 * Math.PI * beatHz * visualBeatScale * elapsedSeconds);
         const baseAmp = layer.amp * (0.4 + energy);
-        const amplitude = playing ? baseAmp * slowEnvelope : baseAmp * 0.35 * Math.sin(elapsedSeconds * 0.3 + l);
+        const amplitude = playing
+          ? baseAmp * slowEnvelope
+          : (reduced ? baseAmp * 0.35 : baseAmp * 0.35 * Math.sin(elapsedSeconds * 0.3 + l));
 
         // Golden-ratio phase rotation prevents modes locking into a static rosette.
-        const phasePhi = 2 * Math.PI * l * 0.618 * elapsedSeconds / 60;
+        const phasePhi = reduced ? 0 : 2 * Math.PI * l * 0.618 * elapsedSeconds / 60;
 
         layerAngularN[l] = angularN;
         layerAlpha[l] = alpha;

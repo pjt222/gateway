@@ -88,3 +88,14 @@ input[type="range"] {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-3); border-radius: 4px; }
 html { scrollbar-width: thin; scrollbar-color: var(--border-3) transparent; }
+
+/* Respect the OS reduced-motion preference: flatten CSS transitions/animations.
+   The canvas rAF loops gate their own time-driven motion in JS (matchMedia). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
