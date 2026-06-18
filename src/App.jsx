@@ -42,6 +42,25 @@ export default function GatewaySession() {
   const phases = PHASE_TEMPLATES[phaseName] || PHASE_TEMPLATES["Steady State"];
   const totalSec = duration * 60;
 
+  // Screen-reader narration, derived during render so the polite live region
+  // speaks whenever this text changes: the active phase as it transitions, and
+  // stop/complete at the end. (No effect/setState - the DOM text change is the
+  // announcement, giving the guided arc to users without the visual PhaseBar.)
+  const liveMsg = (() => {
+    if (isPlaying) {
+      if (phases.length <= 1) return "Session playing";
+      const progress = totalSec > 0 ? Math.min(elapsed / totalSec, 1) : 0;
+      let cum = 0, idx = phases.length - 1;
+      for (let i = 0; i < phases.length; i++) {
+        if (progress < cum + phases[i].pct) { idx = i; break; }
+        cum += phases[i].pct;
+      }
+      return `Now in the ${phases[idx].name} phase`;
+    }
+    if (elapsed > 0) return elapsed >= totalSec - 0.6 ? "Session complete" : "Session stopped";
+    return "";
+  })();
+
   const loadPreset = (name) => {
     setPreset(name); const p = PRESETS[name];
     setLayers(p.layers.map(l=>({...l}))); setNoiseLevel(p.noise);
@@ -120,7 +139,7 @@ export default function GatewaySession() {
 
             {/* Outer spiral — Begin + selects (col 3, row 1) */}
             <div style={{gridColumn:3,gridRow:1,display:"flex",flexDirection:"column",gap:8,alignSelf:"center"}}>
-              <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
+              <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} aria-describedby={isPlaying?undefined:"gw-hp-d"} style={{
                 background:isPlaying?"rgba(239,68,68,0.15)":"var(--border-2)",
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"var(--border-3)"}`,
                 color:isPlaying?"#fca5a5":"var(--accent)",borderRadius:10,padding:"10px 28px",fontSize:13,
@@ -147,7 +166,7 @@ export default function GatewaySession() {
                   </select>
                 </div>
               </div>
-              <p style={{fontSize:11,color:"var(--teal-label)",margin:"2px 0 0",lineHeight:1.5,
+              <p id="gw-hp-d" style={{fontSize:11,color:"var(--teal-label)",margin:"2px 0 0",lineHeight:1.5,
                 display:"flex",alignItems:"center",gap:7,opacity:0.92}}>
                 <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
@@ -168,7 +187,7 @@ export default function GatewaySession() {
                     background:preset===name?"rgba(59,82,139,0.2)":"var(--surface-dim)",
                     border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"var(--border-1)"}`,
                     color:preset===name?"var(--accent)":"rgba(200,190,230,0.9)",borderRadius:8,padding:"6px 12px",
-                    fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:32,
+                    fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:36,
                     cursor:isPlaying?"not-allowed":"pointer",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out, filter 0.2s ease-out, transform 0.12s ease-out",
                     opacity:isPlaying?0.5:1 }}>{name}</button>
                 ))}
@@ -207,7 +226,7 @@ export default function GatewaySession() {
           <div style={{marginTop:16,display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
             <TimerDisplay elapsed={elapsed} duration={totalSec}/>
             <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",justifyContent:"center"}}>
-              <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} style={{
+              <button onClick={isPlaying?stopSession:startSession} aria-label={isPlaying?"Stop session":"Begin session"} aria-describedby={isPlaying?undefined:"gw-hp-m"} style={{
                 background:isPlaying?"rgba(239,68,68,0.15)":"var(--border-2)",
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"var(--border-3)"}`,
                 color:isPlaying?"#fca5a5":"var(--accent)",borderRadius:10,padding:"10px 28px",fontSize:13,
@@ -233,7 +252,7 @@ export default function GatewaySession() {
                 </select>
               </div>
             </div>
-            <p style={{fontSize:11,color:"var(--teal-label)",margin:0,lineHeight:1.5,maxWidth:360,
+            <p id="gw-hp-m" style={{fontSize:11,color:"var(--teal-label)",margin:0,lineHeight:1.5,maxWidth:360,
               display:"flex",alignItems:"center",gap:7,opacity:0.92,justifyContent:"center",textAlign:"center"}}>
               <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
@@ -306,7 +325,7 @@ export default function GatewaySession() {
             <button onClick={addLayer} disabled={layers.length>=6||isPlaying} style={{
               background:"transparent",border:"1px solid rgba(59,82,139,0.2)",
               color:"var(--teal-label)",borderRadius:6,padding:desktop?"4px 10px":"8px 14px",fontSize:11,
-              minHeight:desktop?32:44,
+              minHeight:desktop?36:44,
               cursor:layers.length>=6||isPlaying?"not-allowed":"pointer",
               fontFamily:"'JetBrains Mono',monospace",
               opacity:layers.length>=6||isPlaying?0.3:1 }}>+ Add</button>
@@ -345,7 +364,7 @@ export default function GatewaySession() {
           fontFamily:"'JetBrains Mono',monospace" }}>
           Find a comfortable volume &middot; headphones reveal the full effect &middot; settle in and let the layers carry you</p>
         <div role="status" aria-live="polite" style={{position:"absolute",width:1,height:1,overflow:"hidden",clip:"rect(0,0,0,0)"}}>
-          {isPlaying ? "Session started" : elapsed > 0 ? "Session stopped" : ""}
+          {liveMsg}
         </div>
       </main>
     </div>

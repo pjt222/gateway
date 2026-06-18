@@ -326,7 +326,7 @@ export default function CymaticsCanvas({
         <canvas ref={canvasRef} aria-label="Cymatic standing-wave visualizer (zen mode)"
           style={{ width: "100%", height: "100%", display: "block" }} />
         <div style={{
-          position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
+          position: "absolute", bottom: "calc(16px + env(safe-area-inset-bottom))", left: "50%", transform: "translateX(-50%)",
           fontSize: 10, color: "rgba(33,144,140,0.7)", fontFamily: "'JetBrains Mono',monospace",
           pointerEvents: "none", letterSpacing: "0.08em",
         }}>

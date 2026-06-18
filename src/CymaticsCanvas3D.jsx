@@ -159,6 +159,7 @@ export default function CymaticsCanvas3D({
   const diffsRef = useRef(currentDiffs);
   const isPlayingRef = useRef(isPlaying);
   const playStartRef = useRef(null);
+  const zenDialogRef = useRef(null);
   const reducedMotionRef = useRef(
     typeof window !== "undefined" && window.matchMedia
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -374,15 +375,17 @@ export default function CymaticsCanvas3D({
     return () => window.removeEventListener("keydown", handleKey);
   }, [zenMode, onToggleZen]);
 
+  useEffect(() => { if (zenMode) zenDialogRef.current?.focus(); }, [zenMode]);
+
   if (zenMode) {
     return (
-      <div role="dialog" aria-modal="true"
+      <div ref={zenDialogRef} role="dialog" aria-modal="true"
         aria-label="Zen 3D cymatic visualizer — press Escape to exit" tabIndex={-1}
         style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#000004" }}
         onDoubleClick={onToggleZen}>
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
         <div style={{
-          position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
+          position: "absolute", bottom: "calc(16px + env(safe-area-inset-bottom))", left: "50%", transform: "translateX(-50%)",
           fontSize: 10, color: "rgba(33,144,140,0.7)", fontFamily: "'JetBrains Mono',monospace",
           pointerEvents: "none", letterSpacing: "0.08em",
         }}>

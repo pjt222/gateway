@@ -85,7 +85,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
           <button onClick={()=>onChange({...layer,mode:iso?"binaural":"isochronal"})}
             role="switch" aria-checked={iso} aria-label="Isochronal mode"
             title={iso ? "Isochronal — one pulsing tone, plays on speakers. Tap for Binaural." : "Binaural — needs headphones for the beat. Tap for Isochronal (speakers)."} style={{
-            fontSize:10,padding:compact?"2px 8px":"4px 10px",borderRadius:5,cursor:"pointer",minHeight:compact?28:32,
+            fontSize:10,padding:compact?"4px 8px":"4px 10px",borderRadius:5,cursor:"pointer",minHeight:compact?36:44,
             fontFamily:"'JetBrains Mono',monospace",border:"1px solid",
             background:iso?"rgba(211,67,110,0.12)":"rgba(68,1,84,0.12)",
             borderColor:iso?"rgba(211,67,110,0.3)":"rgba(68,1,84,0.2)",
@@ -95,7 +95,7 @@ export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentD
             minWidth:0,flexShrink:1 }}>{bn} · {dd.toFixed(1)} Hz{range ? ` [${range[0]}–${range[1]}]` : ""}</span>
           <button onClick={onRemove} aria-label={`Remove ${layer.label}`} style={{ background:"transparent",border:"none",
             color:"rgba(200,180,220,0.8)",cursor:"pointer",fontSize:compact?16:18,padding:compact?"4px 6px":"8px 10px",
-            lineHeight:1,minWidth:compact?32:44,minHeight:compact?32:44,
+            lineHeight:1,minWidth:compact?36:44,minHeight:compact?36:44,
             display:"flex",alignItems:"center",justifyContent:"center" }}>&times;</button>
         </div>
       </div>
