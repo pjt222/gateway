@@ -125,9 +125,11 @@ const POINTS_VERTEX = /* glsl */`
 uniform sampler2D uPosTex;
 uniform float uSize;
 uniform float uDpr;
+uniform float uNodeWidth;
+${FIELD_UNIFORMS}
 attribute vec2 aRef;
-varying vec3 vColor;
-${VIRIDIS_GLSL}
+varying float vGlow;
+${FIELD_FUNCS}
 void main() {
   vec4 s = texture2D(uPosTex, aRef);
   vec2 p = s.xy;
@@ -135,20 +137,27 @@ void main() {
   vec3 world = vec3(p.x, 0.0, p.y);
   vec4 mv = modelViewMatrix * vec4(world, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = uSize * uDpr / max(0.1, -mv.z);
-  vColor = viridis(clamp(length(p), 0.0, 1.0));
+  // Grains settled on a nodal line (|u| → 0) glow brightest and swell slightly;
+  // grains still drifting through the antinodes stay small and dim.
+  float glow = 1.0 - smoothstep(0.0, uNodeWidth, abs(cymaticField(p)));
+  vGlow = glow;
+  gl_PointSize = uSize * (0.45 + 0.85 * glow) * uDpr / max(0.1, -mv.z);
 }
 `;
 
 const POINTS_FRAGMENT = /* glsl */`
 precision highp float;
-varying vec3 vColor;
+varying float vGlow;
+${VIRIDIS_GLSL}
 void main() {
   // Round, soft-edged grain.
   float d = length(gl_PointCoord - vec2(0.5));
   if (d > 0.5) discard;
   float a = smoothstep(0.5, 0.0, d);
-  gl_FragColor = vec4(vColor * a, a);
+  // Nodal grains glow bright viridis; drifting grains stay dim and cool. Additive
+  // blending then traces the nodal lines as luminous curves over the dark plate.
+  vec3 col = viridis(0.30 + 0.65 * vGlow);
+  gl_FragColor = vec4(col * a * (0.30 + vGlow), a);
 }
 `;
 
@@ -314,8 +323,21 @@ export default function CymaticsParticles3D({
     const pointsMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uPosTex: { value: null },
-        uSize: { value: 7.0 },
+        uSize: { value: 9.0 },
         uDpr: { value: dpr },
+        uNodeWidth: { value: 0.12 }, // |u| band counted as "on the node"
+        // Field uniforms shared by reference with the compute pass, so the points
+        // colour from exactly the same field the physics drove this frame.
+        besselTex: { value: besselTex },
+        besselTexW: { value: BESSEL_TABLE_SIZE + 1 },
+        besselNRows: { value: BESSEL_N_MAX + 1 },
+        besselXMax: { value: BESSEL_X_MAX },
+        layerN: { value: sharedLayerN },
+        layerAlpha: { value: sharedLayerAlpha },
+        layerAmp: { value: sharedLayerAmp },
+        layerPhase: { value: sharedLayerPhase },
+        layerCount: sharedLayerCount,
+        fieldNorm: sharedFieldNorm,
       },
       vertexShader: POINTS_VERTEX,
       fragmentShader: POINTS_FRAGMENT,
@@ -419,6 +441,7 @@ export default function CymaticsParticles3D({
           ? 0.12
           : (playing ? 0.3 + 0.7 * (pulseAccum / Math.max(1, layerCount)) : 0.35);
         posVar.material.uniformsNeedUpdate = true;
+        pointsMaterial.uniformsNeedUpdate = true;
 
         gpu.compute();
         pointsMaterial.uniforms.uPosTex.value = gpu.getCurrentRenderTarget(posVar).texture;
