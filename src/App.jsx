@@ -125,7 +125,7 @@ export default function GatewaySession() {
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"var(--border-3)"}`,
                 color:isPlaying?"#fca5a5":"var(--accent)",borderRadius:10,padding:"10px 28px",fontSize:13,
                 fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
-                letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out" }}>
+                letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out, filter 0.2s ease-out, transform 0.12s ease-out" }}>
                 {isPlaying?"◼ Stop":"▶ Begin"}</button>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -159,7 +159,7 @@ export default function GatewaySession() {
                     border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"var(--border-1)"}`,
                     color:preset===name?"var(--accent)":"rgba(200,190,230,0.9)",borderRadius:8,padding:"6px 12px",
                     fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:32,
-                    cursor:isPlaying?"not-allowed":"pointer",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out",
+                    cursor:isPlaying?"not-allowed":"pointer",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out, filter 0.2s ease-out, transform 0.12s ease-out",
                     opacity:isPlaying?0.5:1 }}>{name}</button>
                 ))}
               </div>
@@ -202,7 +202,7 @@ export default function GatewaySession() {
                 border:`1px solid ${isPlaying?"rgba(239,68,68,0.3)":"var(--border-3)"}`,
                 color:isPlaying?"#fca5a5":"var(--accent)",borderRadius:10,padding:"10px 28px",fontSize:13,
                 fontFamily:"'JetBrains Mono',monospace",fontWeight:500,cursor:"pointer",
-                letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out" }}>
+                letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out, filter 0.2s ease-out, transform 0.12s ease-out" }}>
                 {isPlaying?"◼ Stop":"▶ Begin"}</button>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 <label htmlFor="dur-sel-m" style={{...sLabel,marginBottom:0}}>Duration</label>
@@ -255,7 +255,7 @@ export default function GatewaySession() {
                   border:`1px solid ${preset===name?"rgba(59,82,139,0.4)":"var(--border-1)"}`,
                   color:preset===name?"var(--accent)":"rgba(200,190,230,0.9)",borderRadius:8,padding:"10px 16px",
                   fontSize:11,fontFamily:"'JetBrains Mono',monospace",minHeight:44,
-                  cursor:isPlaying?"not-allowed":"pointer",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out",
+                  cursor:isPlaying?"not-allowed":"pointer",transition:"background 0.25s ease-out, border-color 0.25s ease-out, color 0.25s ease-out, filter 0.2s ease-out, transform 0.12s ease-out",
                   opacity:isPlaying?0.5:1 }}>{name}</button>
               ))}
             </div>

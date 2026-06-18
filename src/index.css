@@ -82,6 +82,26 @@ input[type="range"] {
   outline-offset: 2px;
 }
 
+/* Hover/active life. Inline styles can't express :hover, so a small global
+   layer gives every control a response. It uses filter/transform only - never
+   set inline - so it layers cleanly over the inline state colors without a
+   specificity fight. Restrained: a held-breath brighten, a tactile press. */
+button, select, input[type="range"] {
+  transition: filter 0.2s ease-out, transform 0.12s ease-out;
+}
+button:hover:not(:disabled),
+select:hover:not(:disabled),
+input[type="range"]:hover:not(:disabled) {
+  filter: brightness(1.2);
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(1.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled) { transform: none; }
+}
+
 /* Thin, on-theme scrollbar for the now-scrollable page (replaces the
    removed .controls-scroll internal scroller). */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
