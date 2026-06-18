@@ -296,7 +296,7 @@ export default function GatewaySession() {
               opacity:layers.length>=6||isPlaying?0.3:1 }}>+ Add</button>
           </div>
           <div style={desktop
-            ?{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}
+            ?{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(280px,1fr))",gap:8}
             :{display:"flex",flexDirection:"column",gap:8}}>
             {layers.map((l,i)=>(
               <div key={i}>
@@ -305,46 +305,25 @@ export default function GatewaySession() {
                   compact={desktop}/>
               </div>
             ))}
-            {/* Pink Noise — inline in grid on desktop */}
-            {desktop && (
-              <div style={{ background:"rgba(11,9,36,0.7)",
-                border:"1px solid rgba(59,82,139,0.1)",borderRadius:10,padding:"8px 10px",
-                display:"flex",flexDirection:"column",justifyContent:"center" }}>
-                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.6)",
-                      boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.3)":"none" }}/>
-                    <span style={{ fontSize:12,fontFamily:"'JetBrains Mono',monospace",color:"#d4d0ec",fontWeight:500 }}>
-                      Pink Noise</span>
-                  </div>
-                  <span style={sVal}>{Math.round(noiseLevel*100)}%</span>
-                </div>
-                <input type="range" min={0} max={50} step={1} value={Math.round(noiseLevel*100)}
-                  aria-label="Pink noise level, maximum 50 percent"
-                  onChange={e=>setNoiseLevel(+e.target.value/100)} style={{...sSlider,marginTop:6}}/>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Pink Noise — separate on mobile */}
-        {!desktop && (
-          <div style={{ marginTop:12,background:"rgba(11,9,36,0.7)",border:"1px solid rgba(59,82,139,0.1)",
-            borderRadius:10,padding:"12px 14px" }}>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.6)",
-                  boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.3)":"none" }}/>
-                <span style={{ fontSize:13,fontFamily:"'JetBrains Mono',monospace",color:"#d4d0ec",fontWeight:500 }}>
-                  Pink Noise</span>
-              </div>
-              <span style={sVal}>{Math.round(noiseLevel*100)}%</span>
-            </div>
-            <input type="range" min={0} max={50} step={1} value={Math.round(noiseLevel*100)}
-              aria-label="Pink noise level, maximum 50 percent"
-              onChange={e=>setNoiseLevel(+e.target.value/100)} style={{...sSlider,marginTop:8}}/>
+        {/* Pink Noise — full-width foundation beneath the entrainment layers (both layouts) */}
+        <div style={{ marginTop:desktop?8:12,background:"rgba(11,9,36,0.7)",
+          border:"1px solid rgba(59,82,139,0.1)",borderRadius:10,
+          padding:desktop?"10px 14px":"12px 14px",
+          display:"flex",alignItems:"center",gap:14 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
+            <div style={{ width:8,height:8,borderRadius:"50%",background:"rgba(211,67,110,0.6)",
+              boxShadow:isPlaying?"0 0 8px rgba(211,67,110,0.3)":"none" }}/>
+            <span style={{ fontSize:desktop?12:13,fontFamily:"'JetBrains Mono',monospace",color:"#d4d0ec",fontWeight:500 }}>
+              Pink Noise</span>
           </div>
-        )}
+          <input type="range" min={0} max={50} step={1} value={Math.round(noiseLevel*100)}
+            aria-label="Pink noise level, maximum 50 percent"
+            onChange={e=>setNoiseLevel(+e.target.value/100)} style={{...sSlider,flex:1,marginTop:0}}/>
+          <span style={{...sVal,flexShrink:0,minWidth:40,textAlign:"right",marginTop:0}}>{Math.round(noiseLevel*100)}%</span>
+        </div>
 
         <p style={{ textAlign:"center",fontSize:10,color:"rgba(53,176,171,0.65)",marginTop:desktop?8:28,
           fontFamily:"'JetBrains Mono',monospace" }}>
