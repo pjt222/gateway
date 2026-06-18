@@ -3,6 +3,7 @@ import { PRESETS, PHASE_TEMPLATES, BAND_LABELS } from "./constants";
 import { useAudioEngine } from "./useAudioEngine";
 import CymaticsCanvas from "./CymaticsCanvas";
 import { PhaseBar, TimerDisplay, LayerRow } from "./components";
+import { sLabel, sVal, sSlider } from "./styles";
 
 const CymaticsCanvas3D = lazy(() => import("./CymaticsCanvas3D"));
 
@@ -14,11 +15,6 @@ const Viz3DFallback = () => (
     Loading 3D…
   </div>
 );
-
-const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
-  letterSpacing:"0.08em",display:"block",marginBottom:2,fontFamily:"'JetBrains Mono',monospace" };
-const sVal = { fontSize:12,color:"#c8bee6",fontFamily:"'JetBrains Mono',monospace",display:"block",marginTop:1 };
-const sSlider = { width:"100%",height:3,appearance:"auto",accentColor:"#3B528B",cursor:"pointer" };
 
 export default function GatewaySession() {
   const [preset, setPreset] = useState("Focus 10");

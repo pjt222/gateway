@@ -1,5 +1,6 @@
 import { getBandColor, getBandName, fmt } from "./utils";
 import { BAND_RANGE } from "./constants";
+import { sLabel, sVal, sSlider } from "./styles";
 
 // ─── Phase Progress Bar ───
 export function PhaseBar({ phases, elapsed, totalDuration }) {
@@ -55,12 +56,6 @@ export function TimerDisplay({ elapsed, duration }) {
     </svg>
   );
 }
-
-// ─── Styles ───
-const sLabel = { fontSize:11,color:"#35b0ab",textTransform:"uppercase",
-  letterSpacing:"0.08em",display:"block",marginBottom:2,fontFamily:"'JetBrains Mono',monospace" };
-const sVal = { fontSize:12,color:"#c8bee6",fontFamily:"'JetBrains Mono',monospace",display:"block",marginTop:1 };
-const sSlider = { width:"100%",height:3,appearance:"auto",accentColor:"#3B528B",cursor:"pointer" };
 
 // ─── Layer Row ───
 export function LayerRow({ layer, index, onChange, onRemove, isPlaying, currentDiff, compact }) {

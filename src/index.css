@@ -1,3 +1,54 @@
+/* ─── Design tokens ───────────────────────────────────────────────
+   Single source of truth for the viridis-derived palette and scales.
+   Inline styles reference these via var(); migrated incrementally. */
+:root {
+  /* backgrounds & surfaces */
+  --bg-0: #000004;
+  --bg-1: #0B0924;
+  --bg-2: #140E36;
+  --surface: rgba(11, 9, 36, 0.7);
+  --surface-dim: rgba(11, 9, 36, 0.5);
+
+  /* chrome blue + translucent border ladder */
+  --blue: #3B528B;
+  --border-1: rgba(59, 82, 139, 0.1);
+  --border-2: rgba(59, 82, 139, 0.15);
+  --border-3: rgba(59, 82, 139, 0.3);
+
+  /* accents */
+  --teal-label: #35b0ab;   /* canonical label/heading teal */
+  --teal-accent: #21908C;  /* darker viridis teal (also alpha band) */
+  --accent: #5DC863;       /* UI action/CTA + focus (re-roled in loop 5) */
+  --magenta: #D3436E;
+  --magenta-iso: #F8765C;
+  --purple-bin: #440154;
+
+  /* text */
+  --text-1: #e2e0f0;       /* primary */
+  --text-2: #c8bee6;       /* data / values */
+  --text-3: #d4d0ec;       /* labels on cards */
+
+  /* brainwave band data spectrum */
+  --band-delta: #7B2F8C;
+  --band-theta: #4F6DB5;
+  --band-alpha: #21908C;
+  --band-beta: #5DC863;
+  --band-gamma: #FDE725;
+
+  /* radii */
+  --radius-sm: 6px;
+  --radius-card: 10px;
+  --radius-pill: 50%;
+
+  /* type scale (existing values, named) */
+  --text-xs: 9px;
+  --text-sm: 10px;
+  --text-data: 11px;
+  --text-val: 12px;
+  --text-btn: 13px;
+  --text-title: 15px;
+}
+
 *,
 *::before,
 *::after {
@@ -28,7 +79,9 @@ input[type="range"] {
   outline-offset: 2px;
 }
 
-.controls-scroll::-webkit-scrollbar { width: 4px; }
-.controls-scroll::-webkit-scrollbar-track { background: transparent; }
-.controls-scroll::-webkit-scrollbar-thumb { background: rgba(59,82,139,0.3); border-radius: 2px; }
-.controls-scroll { scrollbar-width: thin; scrollbar-color: rgba(59,82,139,0.3) transparent; }
+/* Thin, on-theme scrollbar for the now-scrollable page (replaces the
+   removed .controls-scroll internal scroller). */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-3); border-radius: 4px; }
+html { scrollbar-width: thin; scrollbar-color: var(--border-3) transparent; }
