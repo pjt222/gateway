@@ -77,14 +77,21 @@ cmd_status() {
 }
 
 cmd_poll() {
-  local timeout="${1:-600}" step=25 waited=0 base now
+  local timeout="${1:-600}" step=25 waited=0 base now start_req
   base=$(latest_bot_ts)
+  start_req=$(still_requested)
+  # Guard against a false clean pass: with no prior review AND Copilot not
+  # requested (e.g. `poll` before `rerequest`), there is nothing to wait for.
+  if [[ -z "$base" && -z "$start_req" ]]; then
+    die "nothing to wait for — no prior Copilot review and Copilot is not requested; run 'rerequest' first"
+  fi
   echo "polling for Copilot re-review (baseline='${base:-none}', timeout=${timeout}s)…"
   while (( waited < timeout )); do
     sleep "$step"; waited=$((waited + step))
     now=$(latest_bot_ts)
     if [[ -n "$now" && "$now" != "$base" ]]; then echo "→ new Copilot review at $now"; cmd_status; return 0; fi
-    if [[ -z "$(still_requested)" ]]; then echo "→ Copilot finished (removed from requested reviewers)"; cmd_status; return 0; fi
+    # "removed from requested" only counts as completion if it WAS queued at start.
+    if [[ -n "$start_req" && -z "$(still_requested)" ]]; then echo "→ Copilot finished (removed from requested reviewers)"; cmd_status; return 0; fi
     echo "  …waited ${waited}s"
   done
   echo "timeout after ${timeout}s — no re-review yet" >&2; return 1
