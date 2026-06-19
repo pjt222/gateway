@@ -96,7 +96,10 @@ cmd_poll() {
     # WAS queued at start). A re-review is "clean" only when no threads remain open —
     # a new review that itself raises findings is NOT a clean pass.
     if [[ ( -n "$now" && "$now" != "$base" ) || ( -n "$start_req" && -z "$(still_requested)" ) ]]; then
-      local open; open=$(cmd_threads || true)
+      local open
+      if ! open=$(cmd_threads); then
+        echo "→ could not fetch review threads (auth/rate-limit/network); not trusting a clean result" >&2; return 2
+      fi
       if [[ -n "$open" ]]; then
         echo "→ re-review complete — OPEN findings remain:"; echo "$open"; cmd_status; return 1
       fi
