@@ -93,6 +93,17 @@ npm run cap:android    # Build + open in Android Studio
 npm run cap:ios        # Build + open in Xcode
 ```
 
+### Verifying the visualizers (headless)
+The 3D visualizers (nodal Shells / drifting Sand) run a WebGL + GPGPU pipeline that unit tests can't cover. `scripts/verify-viz.mjs` boots the app headlessly, drives it to Sand mode, and asserts the GPGPU sand actually renders — `EXT_color_buffer_half_float` support, a non-black canvas (pixel luminance), `visibilityState`, a reduced-motion pass, and no GL/GPGPU console errors. Exits non-zero on any failure (CI-friendly).
+
+```bash
+npx playwright install chromium    # one-time: fetch the headless browser
+node scripts/verify-viz.mjs        # build + `vite preview`, then verify the shipped surface
+node scripts/verify-viz.mjs --dev  # faster: verify against the dev server instead
+```
+
+> Note: `--dev` is faster but the dev server is **not** the shipped chunk graph (the viz is lazy-loaded); the default build+preview path catches production-only chunk-load breaks. HMR does not reset GPGPU textures, so always re-run fresh rather than trusting a hot update.
+
 ### Usage
 1. Open in browser (stereo headphones recommended for binaural mode)
 2. Select a preset or configure layers manually
