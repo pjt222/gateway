@@ -127,8 +127,11 @@ try {
         b.on("exit", (c) => (c === 0 ? res() : rej(new Error("build failed"))));
       });
     }
-    console.log(`starting ${DEV ? "dev" : "preview"} server…`);
-    server = sh("npm", ["run", DEV ? "dev" : "preview"], { stdio: "ignore", detached: true });
+    console.log(`starting ${DEV ? "dev" : "preview"} server on :${PORT}…`);
+    // --strictPort so Vite fails loudly instead of binding a different port
+    // (which would leave URL and the actual bound port inconsistent).
+    server = sh("npm", ["run", DEV ? "dev" : "preview", "--", "--port", String(PORT), "--strictPort"],
+                { stdio: "ignore", detached: true });
     if (!(await waitForServer(URL, 40000))) throw new Error(`server never came up at ${URL}`);
   }
   console.log(`verifying ${URL}`);
