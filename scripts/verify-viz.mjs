@@ -147,7 +147,8 @@ try {
 
   // --- assertions ---
   for (const r of results) {
-    if (!r.webgl.halfFloat) failures.push(`${r.tag}: no EXT_color_buffer_half_float (GPGPU would fall back to Shells)`);
+    if (!r.webgl.webgl2) failures.push(`${r.tag}: WebGL2 unavailable — check the headless GPU path / SwiftShader flags`);
+    else if (!r.webgl.halfFloat) failures.push(`${r.tag}: no EXT_color_buffer_half_float (GPGPU would fall back to Shells)`);
     if (r.info.sandPressed !== "true") failures.push(`${r.tag}: Sand mode not active (aria-pressed=${r.info.sandPressed})`);
     if (r.info.visibility !== "visible") failures.push(`${r.tag}: canvas hidden (rAF gated, visibility=${r.info.visibility})`);
     if (r.lit < LIT_THRESHOLD) failures.push(`${r.tag}: canvas effectively black (lit=${r.lit.toFixed(1)}%)`);
