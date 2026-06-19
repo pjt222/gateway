@@ -4,6 +4,7 @@ import * as Tone from "tone";
 import {
   BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_X_MAX, BESSEL_TABLE_SIZE,
 } from "./bessel";
+import { ModePicker, VIZ_TOGGLE_BTN, ZEN_BTN } from "./VizControls";
 import { watchMedia } from "./utils";
 
 const SHELL_COUNT = 5;
@@ -122,38 +123,9 @@ void main() {
 }
 `;
 
-const VIZ_TOGGLE_BTN = {
-  background: "rgba(11,9,36,0.92)",
-  border: "1px solid rgba(93,200,99,0.55)",
-  borderRadius: 6,
-  padding: "6px 10px",
-  cursor: "pointer",
-  color: "#5DC863",
-  lineHeight: 1,
-  fontWeight: 600,
-  fontSize: 11,
-  fontFamily: "'JetBrains Mono',monospace",
-  letterSpacing: "0.08em",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const ZEN_BTN = {
-  background: "rgba(0,0,4,0.5)",
-  border: "1px solid rgba(59,82,139,0.2)",
-  borderRadius: 6,
-  padding: "5px 7px",
-  cursor: "pointer",
-  color: "rgba(33,144,140,0.7)",
-  lineHeight: 1,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
 export default function CymaticsCanvas3D({
   fftAnalyserRef, isPlaying, currentDiffs, layers, zenMode, onToggleZen, onToggle3D,
+  viz3DMode, onSet3DMode,
 }) {
   const containerRef = useRef(null);
   const layersRef = useRef(layers);
@@ -361,6 +333,9 @@ export default function CymaticsCanvas3D({
       shellMeshes.forEach(m => m.material.dispose());
       planeGeometry.dispose();
       besselTex.dispose();
+      // forceContextLoss before dispose so each zen toggle releases its GL context
+      // deterministically rather than relying on GC (browsers cap live contexts ~16).
+      renderer.forceContextLoss();
       renderer.dispose();
       const dom = renderer.domElement;
       if (dom.parentNode) dom.parentNode.removeChild(dom);
@@ -407,9 +382,10 @@ export default function CymaticsCanvas3D({
           border: "1px solid var(--border-2)", background: "#000004", cursor: "pointer",
         }} />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>
-        <button onClick={onToggle3D} aria-label="Switch to 2D view"
+        <ModePicker mode={viz3DMode} onSet={onSet3DMode} />
+        <button type="button" onClick={onToggle3D} aria-label="Switch to 2D view"
           title="Switch to 2D" style={VIZ_TOGGLE_BTN}>2D</button>
-        <button onClick={onToggleZen} aria-label="Zen mode" title="Zen mode" style={ZEN_BTN}>
+        <button type="button" onClick={onToggleZen} aria-label="Zen mode" title="Zen mode" style={ZEN_BTN}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="2" strokeLinecap="round">
             <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
