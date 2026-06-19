@@ -1,10 +1,11 @@
-// Shared GLSL for the cymatic Bessel standing-wave field.
-//
-// Both the 3D nodal-shell shader (CymaticsCanvas3D) and the particle update +
-// render shaders (CymaticsParticles3D) describe the SAME scalar field
+// Shared GLSL for the cymatic Bessel standing-wave field
 // u(r,θ) = Σ ampᵢ·Jₙ(αᵢ·r)·[cos(nθ)·φx − sin(nθ)·φy], normalised by fieldNorm.
-// Keeping the uniform contract and the field/lookup functions here means the
-// math can't drift between visualizer modes.
+//
+// Currently consumed by the particle update + render shaders
+// (CymaticsParticles3D). The 3D nodal-shell shader (CymaticsCanvas3D) still
+// carries its own inline copy of this math; routing it through this module is a
+// tracked follow-up. Until then the shell is the one place the field can drift
+// from this source — keep the two in sync by hand if you touch either.
 //
 // Contract: a shader that includes FIELD_FUNCS must also declare FIELD_UNIFORMS
 // (the besselTex + 6-layer uniform block) and bind a Bessel lookup DataTexture
