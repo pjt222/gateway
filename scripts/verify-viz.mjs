@@ -140,10 +140,13 @@ try {
   const browser = await chromium.launch({ headless: true, args: ARGS });
   const logs = [];
   const results = [];
-  for (const [reduced, tag] of [[false, "norm"], [true, "rm"]]) {
-    results.push(await runContext(browser, reduced, tag, logs));
+  try {
+    for (const [reduced, tag] of [[false, "norm"], [true, "rm"]]) {
+      results.push(await runContext(browser, reduced, tag, logs));
+    }
+  } finally {
+    await browser.close(); // always close, even if a context run throws
   }
-  await browser.close();
 
   // --- assertions ---
   for (const r of results) {
