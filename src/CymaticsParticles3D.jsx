@@ -57,10 +57,11 @@ function buildBesselTexture() {
   return tex;
 }
 
-// Drifting Chladni sand: GPGPU particles wander the unit disc and (once physics
-// lands in the next commit) settle onto the standing-wave nodal lines. This
-// commit is the plumbing only — a position texture of random disc points sampled
-// by a THREE.Points cloud, an identity compute pass exercising the ping-pong, and
+// Drifting Chladni sand: GPGPU particles wander the unit disc, descend the
+// gradient of the standing-wave field energy (∇u²) by central differences, and
+// settle onto the nodal lines — jitter spreads them along a node, damping calms
+// them, and they glow viridis by proximity to it. A HalfFloat position/velocity
+// texture is ping-ponged each frame and sampled by a THREE.Points cloud, inside
 // the orbit/zen/resize/control-cluster shell shared with the 3D nodal viz.
 
 // Particle budget scales with the device: a coarse pointer (phone/tablet WebView)
