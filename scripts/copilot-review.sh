@@ -67,7 +67,10 @@ cmd_rerequest() {
 }
 
 latest_bot_ts()    { gh api "repos/$OWNER/$REPO/pulls/$PR/reviews" --jq "[.[]|select(.user.login==\"$BOT\")]|last|.submitted_at // \"\""; }
-still_requested()  { gh api "repos/$OWNER/$REPO/pulls/$PR/requested_reviewers" --jq '[.users[].login]|index("Copilot") // empty' 2>/dev/null || true; }
+# GitHub may report the Copilot reviewer either as the user "Copilot" or by the
+# bot slug; match either so `poll` doesn't false-error as "nothing to wait for".
+still_requested()  { gh api "repos/$OWNER/$REPO/pulls/$PR/requested_reviewers" 2>/dev/null \
+                       | jq -r --arg bot "$BOT" '[.users[].login] | (index("Copilot") // index($bot)) // empty' 2>/dev/null || true; }
 
 cmd_status() {
   local open; open=$(cmd_threads | grep -c . || true)
