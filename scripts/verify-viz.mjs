@@ -27,7 +27,7 @@
 
 import { chromium } from "playwright-core";
 import { PNG } from "pngjs";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
@@ -162,9 +162,12 @@ try {
   if (server) {
     try {
       // POSIX: a negative pid signals the whole process group (npm + vite + children).
-      // Windows has no process groups / negative pids, so kill the child directly.
-      if (process.platform === "win32") server.kill();
-      else process.kill(-server.pid, "SIGTERM");
+      // Windows has no process groups; server.kill() would only hit npm and orphan
+      // vite, so kill the whole tree with taskkill /T (falling back to server.kill()).
+      if (process.platform === "win32") {
+        const r = spawnSync("taskkill", ["/pid", String(server.pid), "/t", "/f"]);
+        if (r.error) server.kill();
+      } else process.kill(-server.pid, "SIGTERM");
     } catch { try { server.kill(); } catch { /* already gone */ } }
   }
 }
