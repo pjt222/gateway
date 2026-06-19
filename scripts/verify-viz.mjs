@@ -30,10 +30,11 @@ import { PNG } from "pngjs";
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, join } from "node:path";
+import { tmpdir } from "node:os";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = process.env.VIZ_OUT || "/tmp/sandviz";
+const OUT = process.env.VIZ_OUT || join(tmpdir(), "sandviz");
 const DEV = process.argv.includes("--dev");
 const NO_BUILD = process.argv.includes("--no-build");
 const PORT = DEV ? 5173 : 4173;
