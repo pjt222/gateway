@@ -5,7 +5,7 @@ import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer
 import {
   BESSEL_ZEROS, J_TABLE, BESSEL_N_MAX, BESSEL_X_MAX, BESSEL_TABLE_SIZE,
 } from "./bessel";
-import { VIRIDIS_GLSL, FIELD_UNIFORMS, FIELD_FUNCS } from "./cymaticField.glsl";
+import { VIRIDIS_GLSL, FIELD_UNIFORMS, FIELD_FUNCS } from "./cymaticField.glsl.js";
 import { ModePicker, VIZ_TOGGLE_BTN, ZEN_BTN } from "./VizControls";
 import { watchMedia } from "./utils";
 
