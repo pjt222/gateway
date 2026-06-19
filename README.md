@@ -104,6 +104,16 @@ node scripts/verify-viz.mjs --dev  # faster: verify against the dev server inste
 
 > Note: `--dev` is faster but the dev server is **not** the shipped chunk graph (the viz is lazy-loaded); the default build+preview path catches production-only chunk-load breaks. HMR does not reset GPGPU textures, so always re-run fresh rather than trusting a hot update.
 
+### Maintainer: Copilot review loop
+`scripts/copilot-review.sh` drives a GitHub Copilot PR review to a clean pass — list open threads, reply, resolve, re-request, and poll the async re-review. Repo/PR are inferred from the current branch's PR (override with `COPILOT_PR=<n>`).
+
+```bash
+scripts/copilot-review.sh status      # open-thread count + latest Copilot verdict
+scripts/copilot-review.sh threads     # OPEN threads: <commentId> <threadNodeId> <path:line>
+scripts/copilot-review.sh resolve <threadNodeId>
+scripts/copilot-review.sh rerequest   # ask Copilot to review again, then `poll`
+```
+
 ### Usage
 1. Open in browser (stereo headphones recommended for binaural mode)
 2. Select a preset or configure layers manually
