@@ -97,7 +97,7 @@ npm run cap:ios        # Build + open in Xcode
 The 3D visualizers (nodal Shells / drifting Sand) run a WebGL + GPGPU pipeline that unit tests can't cover. `scripts/verify-viz.mjs` boots the app headlessly, drives it to Sand mode, and asserts the GPGPU sand actually renders — `EXT_color_buffer_half_float` support, a non-black canvas (pixel luminance), `visibilityState`, a reduced-motion pass, and no GL/GPGPU console errors. Exits non-zero on any failure (CI-friendly).
 
 ```bash
-npx playwright install chromium    # one-time: fetch the headless browser
+npx playwright-core install chromium   # one-time: fetch the headless browser (matches the pinned playwright-core dep)
 node scripts/verify-viz.mjs        # build + `vite preview`, then verify the shipped surface
 node scripts/verify-viz.mjs --dev  # faster: verify against the dev server instead
 ```

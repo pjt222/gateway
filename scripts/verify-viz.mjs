@@ -10,7 +10,7 @@
 //   node scripts/verify-viz.mjs --dev      # use/boot the dev server (faster; NOT the shipped chunk graph)
 //   VERIFY_URL=http://host:port/gateway/ node scripts/verify-viz.mjs   # target a running server
 //
-// Setup (once):  npm install   &&   npx playwright install chromium
+// Setup (once):  npm install   &&   npx playwright-core install chromium
 //
 // Gotchas this encodes (each cost a cold start real time):
 //  - headless Chromium needs SwiftShader/ANGLE flags for WebGL2;
