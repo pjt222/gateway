@@ -93,6 +93,27 @@ npm run cap:android    # Build + open in Android Studio
 npm run cap:ios        # Build + open in Xcode
 ```
 
+### Verifying the visualizers (headless)
+The 3D visualizers (nodal Shells / drifting Sand) run a WebGL + GPGPU pipeline that unit tests can't cover. `scripts/verify-viz.mjs` boots the app headlessly, drives it to Sand mode, and asserts the GPGPU sand actually renders — `EXT_color_buffer_half_float` support, a non-black canvas (pixel luminance), `visibilityState`, a reduced-motion pass, and no GL/GPGPU console errors. Exits non-zero on any failure (CI-friendly).
+
+```bash
+npx playwright-core install chromium   # one-time: fetch the headless browser (matches the pinned playwright-core dep)
+node scripts/verify-viz.mjs        # build + `vite preview`, then verify the shipped surface
+node scripts/verify-viz.mjs --dev  # faster: verify against the dev server instead
+```
+
+> Note: `--dev` is faster but the dev server is **not** the shipped chunk graph (the viz is lazy-loaded); the default build+preview path catches production-only chunk-load breaks. HMR does not reset GPGPU textures, so always re-run fresh rather than trusting a hot update.
+
+### Maintainer: Copilot review loop
+`scripts/copilot-review.sh` drives a GitHub Copilot PR review to a clean pass — list open threads, reply, resolve, re-request, and poll the async re-review. Repo/PR are inferred from the current branch's PR (override with `COPILOT_PR=<n>`).
+
+```bash
+scripts/copilot-review.sh status      # open-thread count + latest Copilot verdict
+scripts/copilot-review.sh threads     # OPEN threads: <commentId> <threadNodeId> <path:line>
+scripts/copilot-review.sh resolve <threadNodeId>
+scripts/copilot-review.sh rerequest   # ask Copilot to review again, then `poll`
+```
+
 ### Usage
 1. Open in browser (stereo headphones recommended for binaural mode)
 2. Select a preset or configure layers manually
