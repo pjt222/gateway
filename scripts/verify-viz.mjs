@@ -25,7 +25,7 @@
 //
 // Exit code: 0 = PASS, 1 = at least one assertion failed (CI-friendly).
 
-import { chromium } from "playwright";
+import { chromium } from "playwright-core";
 import { PNG } from "pngjs";
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
