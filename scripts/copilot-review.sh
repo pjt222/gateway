@@ -92,9 +92,16 @@ cmd_poll() {
   while (( waited < timeout )); do
     sleep "$step"; waited=$((waited + step))
     now=$(latest_bot_ts)
-    if [[ -n "$now" && "$now" != "$base" ]]; then echo "→ new Copilot review at $now"; cmd_status; return 0; fi
-    # "removed from requested" only counts as completion if it WAS queued at start.
-    if [[ -n "$start_req" && -z "$(still_requested)" ]]; then echo "→ Copilot finished (removed from requested reviewers)"; cmd_status; return 0; fi
+    # Complete on a newer review, or Copilot leaving the requested list (only if it
+    # WAS queued at start). A re-review is "clean" only when no threads remain open —
+    # a new review that itself raises findings is NOT a clean pass.
+    if [[ ( -n "$now" && "$now" != "$base" ) || ( -n "$start_req" && -z "$(still_requested)" ) ]]; then
+      local open; open=$(cmd_threads || true)
+      if [[ -n "$open" ]]; then
+        echo "→ re-review complete — OPEN findings remain:"; echo "$open"; cmd_status; return 1
+      fi
+      echo "→ clean pass — no open review threads"; cmd_status; return 0
+    fi
     echo "  …waited ${waited}s"
   done
   echo "timeout after ${timeout}s — no re-review yet" >&2; return 1
