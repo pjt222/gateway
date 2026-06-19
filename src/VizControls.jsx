@@ -54,9 +54,9 @@ export function ModePicker({ mode, onSet }) {
   return (
     <div role="group" aria-label="3D visual mode"
       style={{ display: "flex", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(93,200,99,0.45)" }}>
-      <button onClick={() => onSet?.("shells")} aria-pressed={mode === "shells"}
+      <button type="button" onClick={() => onSet?.("shells")} aria-pressed={mode === "shells"}
         title="Nodal shells" style={seg(mode === "shells")}>Shells</button>
-      <button onClick={() => onSet?.("particles")} aria-pressed={mode === "particles"}
+      <button type="button" onClick={() => onSet?.("particles")} aria-pressed={mode === "particles"}
         title="Drifting sand" style={seg(mode === "particles")}>Sand</button>
     </div>
   );

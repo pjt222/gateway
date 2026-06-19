@@ -552,9 +552,9 @@ export default function CymaticsParticles3D({
         }} />
       <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6, zIndex: 10 }}>
         <ModePicker mode={viz3DMode} onSet={onSet3DMode} />
-        <button onClick={onToggle3D} aria-label="Switch to 2D view"
+        <button type="button" onClick={onToggle3D} aria-label="Switch to 2D view"
           title="Switch to 2D" style={VIZ_TOGGLE_BTN}>2D</button>
-        <button onClick={onToggleZen} aria-label="Zen mode" title="Zen mode" style={ZEN_BTN}>
+        <button type="button" onClick={onToggleZen} aria-label="Zen mode" title="Zen mode" style={ZEN_BTN}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="2" strokeLinecap="round">
             <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
