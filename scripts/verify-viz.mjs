@@ -157,7 +157,14 @@ try {
 } catch (e) {
   failures.push(`fatal: ${e.message}`);
 } finally {
-  if (server) { try { process.kill(-server.pid, "SIGTERM"); } catch { /* gone */ } }
+  if (server) {
+    try {
+      // POSIX: a negative pid signals the whole process group (npm + vite + children).
+      // Windows has no process groups / negative pids, so kill the child directly.
+      if (process.platform === "win32") server.kill();
+      else process.kill(-server.pid, "SIGTERM");
+    } catch { try { server.kill(); } catch { /* already gone */ } }
+  }
 }
 
 if (failures.length) {
