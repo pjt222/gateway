@@ -1,5 +1,7 @@
 # Gateway Session — Binaural Beat Meditation Engine
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/pjt222/gateway)
+
 Interactive real-time binaural beat meditation tool inspired by the Monroe Institute's Gateway Experience. Cross-platform app built with React, Tone.js (Web Audio API), and Capacitor (iOS/Android/web).
 
 **[Live Demo →](https://pjt222.github.io/gateway/)**
